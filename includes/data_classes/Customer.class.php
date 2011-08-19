@@ -82,7 +82,7 @@ class Customer extends CustomerGen {
 			(!is_null($_SESSION['customer'])))
 			$customer = $_SESSION['customer'];
 
-		if ($customer)
+		if (isset($customer) && !empty($customer))
 			return $customer;
 
 		if ($fallbackOnStackTemp) {
