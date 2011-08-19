@@ -146,17 +146,21 @@ class xlsws_contact_us extends xlsws_index {
 	protected function build_main() {
 		$customer = Customer::GetCurrent();
 
-		$pageR = CustomPage::LoadByKey('contactus');
+        $pageR = CustomPage::LoadByKey('contactus');
+        $strTitle = _sp('Contact Us');
 
-		if($pageR)
-			$this->page = $pageR->Page;
+		if($pageR) {
+            $this->page = $pageR->Page;
+            $strTitle = _sp($pageR->Title);
+        }
 
 		$this->mainPnl = new QPanel($this);
 		$this->mainPnl->Template = templateNamed('contact_us.tpl.php');
 
-		$this->crumbs[] = array('key'=>'xlspg=contact_us' , 'case'=> '' , 'name'=> _sp($pageR->Title));
+ 		$this->crumbs[] = array('key'=>'xlspg=contact_us',
+            'case'=> '', 'name'=> $strTitle);
 
-		_xls_add_page_title(_sp($pageR->Title));
+  		_xls_add_page_title(_sp($strTitle));
 
 		$this->lblError = new QLabel($this->mainPnl);
 
