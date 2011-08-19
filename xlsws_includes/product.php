@@ -311,7 +311,7 @@ class xlsws_product extends xlsws_index {
 		$this->mainPnl = new QPanel($this);
 
 		if($this->prod && $this->prod->Web){
-			if ($XLSWS_VARS['ajax'] == "true") {
+			if (isset($XLSWS_VARS['ajax']) && ($XLSWS_VARS['ajax'] == "true")) {
 				$this->lightbox = true;
 				$this->mainPnl->Template = templateNamed('product_detail_lightbox.tpl.php');
 			} else {
