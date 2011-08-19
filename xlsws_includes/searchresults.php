@@ -94,7 +94,8 @@ class xlsws_searchresult extends xlsws_index {
 			$catQ = "";
 			$matrixQ = "";
 
-			if ($XLSWS_VARS['filter'] == "1" && !empty($XLSWS_VARS['c'])) {
+            if (isset($XLSWS_VARS['filter']) && 
+            ($XLSWS_VARS['filter'] == '1') && !empty($XLSWS_VARS['c'])) {
 				$searchcat = end($this->menu_categories); //no need to do a query to get the current category object, array is already set
 				$results = $searchcat->GetChildIds();
 				$results[] = $XLSWS_VARS['c'];
