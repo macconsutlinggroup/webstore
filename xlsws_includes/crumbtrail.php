@@ -52,7 +52,8 @@ if (isset($XLSWS_VARS['c']) || isset($XLSWS_VARS['product'])) {
 		$category_id = $category_id[count($category_id)-1]; // take the last category index
 
 	do {
-		$category = Category::Load($category_id);
+        $category = Category::Load($category_id);
+        if (!$category) break;
 
 		$strName = $category->Name;
 		if ($category && strlen($category->Name) > 20)
