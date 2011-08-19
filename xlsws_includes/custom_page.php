@@ -44,7 +44,7 @@ class xlsws_custom_page extends xlsws_index {
 	protected function build_slider() {
 		global $strPageTitle;
 		$this->pnlSlider = new XLSSlider($this->mainPnl);
-		$this->pnlSlider->Name = $pageR->Title;
+		$this->pnlSlider->Name = $strPageTitle;
 		$sort_by = _xls_get_conf('PRODUCT_SORT_FIELD' , "Name");
 		$search = $this->productTag;
 
