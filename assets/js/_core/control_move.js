@@ -1,27 +1,3 @@
-/*
-  LightSpeed Web Store
- 
-  NOTICE OF LICENSE
- 
-  This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to support@lightspeedretail.com <mailto:support@lightspeedretail.com>
- * so we can send you a copy immediately.
- 
-  DISCLAIMER
- 
- * Do not edit or add to this file if you wish to upgrade Web Store to newer
- * versions in the future. If you wish to customize Web Store for your
- * needs please refer to http://www.lightspeedretail.com for more information.
- 
- * @copyright  Copyright (c) 2011 Xsilva Systems, Inc. http://www.lightspeedretail.com
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- 
- */
 /////////////////////////////////////////////
 // Control: Moveable functionality
 /////////////////////////////////////////////
@@ -37,44 +13,25 @@
 		if (!objWrapper.mask) {
 			var objSpanElement = document.createElement('span');
 			objSpanElement.id = objWrapper.id + "mask";
-			
-			// PAT MOD -- appending thhe mask span element to the body, rather than some random location
-			// while defaulting to old location under the Qform__FormId on failure.
-			// Note: must wait until page is fully loaded to do this, so ensure it's called on ready
-			jQuery(document).ready(function(){
-
-				objSpanElement.style.position = "absolute";
-				var bodyEl = jQuery('body');
-				if (! bodyEl) {
-					bodyEl = jQuery('#' + document.getElementById("Qform__FormId").value);
-				}
-
-				objSpanJEl = jQuery(objSpanElement);
-
-				bodyEl.append(objSpanJEl);
-			 });
-
+			objSpanElement.style.position = "absolute";
+			document.getElementById(document.getElementById("Qform__FormId").value).appendChild(objSpanElement);
 			objWrapper.mask = objSpanElement;
 		};
 		objWrapper.mask.wrapper = objWrapper;
 
 		// Setup Mask
-		objMask = jQuery(objWrapper.mask);
-		objMask.css('position', 'absolute');
-		objMask.css('z-index', '998');
-		objMask.css('overflow', 'visible');
-		objMask.attr('class', 'hohoho');
+		objMask = objWrapper.mask;
+		objMask.style.position = "absolute";
+		objMask.style.zIndex = 998;
 		if (qcodo.isBrowser(qcodo.IE))
-		{
-			objMask.css('filter', "alpha(opacity=50)");
-		} else {
-			objMask.css('opacity', "0.5");
-		}
-		objMask.hide();
-		objMask.html('');
+			objMask.style.filter = "alpha(opacity=50)";
+		else
+			objMask.style.opacity = 0.5;
+		objMask.style.display = "none";
+		objMask.innerHTML = "";
 
 		objMask.handleAnimateComplete = function(mixControl) {
-			jQuery(this).hide();
+			this.style.display = "none";
 		};
 	};
 
@@ -199,20 +156,14 @@
 				// Make the Masks appear (if applicable)
 				for (var strKey in this.moveControls) {
 					var objMoveControl = this.moveControls[strKey];
-					if (qcodo.isBrowser(qcodo.IE))
-					{
-						// PAT MOD for IE stupidity... forcing the class name to change, gets rid of the product_image_cell margin 'auto' setting that 
-						// was causing so many issues with positioning...
-						objMoveControl.updateStyle("className", 'xsilva_moving');
-					}
-					var objMask = jQuery(objMoveControl.mask);
+					var objMask = objMoveControl.mask;
 
 					var objAbsolutePosition = objMoveControl.getAbsolutePosition();
 
-					objMask.css('top', "" + objAbsolutePosition.y + "px");
-					objMask.css('left', "" + objAbsolutePosition.x + "px");
-					objMask.html('');
-					objMask.fadeIn('fast');
+					objMask.style.display = "block";
+					objMask.style.top = objAbsolutePosition.y + "px";
+					objMask.style.left = objAbsolutePosition.x + "px";
+					objMask.innerHTML = "";
 				};
 
 				return qcodo.terminateEvent(objEvent);
@@ -305,7 +256,7 @@
 					if (objWrapper.updateHandle)
 						objWrapper.updateHandle(false, "move");
 
-					if (qcodo.isBrowser(qcodo.IE))
+					if (qcodo.isBrowser(this.IE))
 						this.resetMasks(intDeltaX, intDeltaY, 25);
 					else
 						this.resetMasks(intDeltaX, intDeltaY, 50);
@@ -386,20 +337,12 @@
 			// Mouse Delta Calculator
 			objWrapper.calculateMoveDelta = function() {
 				// Calculate Move Delta
-				var intDeltaX = (qcodo.page.x - this.startDragX);
+				var intDeltaX = qcodo.page.x - this.startDragX;
 				var intDeltaY = qcodo.page.y - this.startDragY;
 
+				intDeltaX = Math.min(Math.max(intDeltaX, -1 * this.boundingBox.x), qcodo.page.width - this.boundingBox.boundX);
+				intDeltaY = Math.min(Math.max(intDeltaY, -1 * this.boundingBox.y), qcodo.page.height - this.boundingBox.boundY);
 
-				// PAT MOD ... for some reason, we need to blowup mouse movement for IE or else the drag
-				// does not track in the x-plane.
-				if (0 && qcodo.isBrowser(qcodo.IE))
-				{
-					// intDeltaX = intDeltaX * 2;
-				} else {
-					// this code also fails with IE, so it's here for other more decent browsers...
-					intDeltaX = Math.min(Math.max(intDeltaX, -1 * this.boundingBox.x), qcodo.page.width - this.boundingBox.boundX);
-					intDeltaY = Math.min(Math.max(intDeltaY, -1 * this.boundingBox.y), qcodo.page.height - this.boundingBox.boundY);
-				}
 				return {x: intDeltaX, y: intDeltaY};
 			};
 
@@ -447,24 +390,15 @@
 				for (var strKey in this.moveControls) {
 					var objMoveControl = this.moveControls[strKey];
 					var objAbsolutePosition = objMoveControl.getAbsolutePosition();
-
-					var offsetWidth = objMoveControl.mask.offsetWidth;
-					// PAT MOD -- using the mask offsetWidth with IE causes unhappiness, perhaps because it is invisible but I dunno... but the move control's offset works ok.
-					if (qcodo.isBrowser(qcodo.IE))
-					{
-						offsetWidth = objMoveControl.offsetWidth;
-					}
-						
-					
 					if (intMinX == null) {
 						intMinX = objAbsolutePosition.x;
 						intMinY = objAbsolutePosition.y;
-						intMaxX = objAbsolutePosition.x + offsetWidth;
+						intMaxX = objAbsolutePosition.x + objMoveControl.mask.offsetWidth;
 						intMaxY = objAbsolutePosition.y + objMoveControl.mask.offsetHeight;
 					} else {
 						intMinX = Math.min(intMinX, objAbsolutePosition.x);
 						intMinY = Math.min(intMinY, objAbsolutePosition.y);
-						intMaxX = Math.max(intMaxX, objAbsolutePosition.x + offsetWidth);
+						intMaxX = Math.max(intMaxX, objAbsolutePosition.x + objMoveControl.mask.offsetWidth);
 						intMaxY = Math.max(intMaxY, objAbsolutePosition.y + objMoveControl.mask.offsetHeight);
 					};
 				};
@@ -500,7 +434,6 @@
 					if (objMask.innerHTML == ".")
 						objMask.innerHTML = objWrapper.innerHTML.replace(' id="', ' id="invalid_mask_');
 
-					objMaskJEl = jQuery(objMask);
 					// Recalculate Widths
 					this.updateBoundingBox();
 

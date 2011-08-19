@@ -51,10 +51,7 @@
 			$this->strPropertyName = $strPropertyName;
 			$this->strType = $strType;
 			if ($objParentNode) {
-				if (version_compare(PHP_VERSION, '5.1.0') == -1)
-					$this->strRootTableName = $objParentNode->__get('_RootTableName');
-				else
-					$this->strRootTableName = $objParentNode->_RootTableName;
+				$this->strRootTableName = $objParentNode->_RootTableName;
 			} else
 				$this->strRootTableName = $strName;
 		}
@@ -186,12 +183,6 @@
 		//////////////////
 		// Helpers for Orm-generated DataGrids
 		//////////////////
-		protected function GetDataGridHtmlHelper($strNodeLabelArray, $intIndex) {
-			if (($intIndex + 1) == count($strNodeLabelArray))
-				return $strNodeLabelArray[$intIndex];
-			else
-				return sprintf('(%s ? %s : null)', $strNodeLabelArray[$intIndex], $this->GetDataGridHtmlHelper($strNodeLabelArray, $intIndex + 1));
-		}
 		public function GetDataGridHtml() {
 			// Array-ify Node Hierarchy
 			$objNodeArray = array();
@@ -209,24 +200,54 @@
 				throw new Exception('Invalid QQNode to GetDataGridHtml on');
 
 			// Simple Two-Step Node
-			else if (count($objNodeArray) == 2)
-				$strToReturn = '$_ITEM->' . $objNodeArray[1]->strPropertyName;
+			else if (count($objNodeArray) == 2) {
+				return $this->GetDataGridHtmlHelper(
+					'$_ITEM->' . $objNodeArray[1]->strPropertyName,
+					$objNodeArray[1]->strType,
+					$this->strClassName);
+			}
 
 			// Complex N-Step Node
 			else {
 				$strNodeLabelArray[0] = '$_ITEM->' . $objNodeArray[1]->strPropertyName;
-				for ($intIndex = 2; $intIndex < count($objNodeArray); $intIndex++) {
+				for ($intIndex = 2; $intIndex < count($objNodeArray); $intIndex++)
 					$strNodeLabelArray[$intIndex - 1] = $strNodeLabelArray[$intIndex - 2] . '->' . $objNodeArray[$intIndex]->strPropertyName;
-				}
 
-				$strToReturn = $this->GetDataGridHtmlHelper($strNodeLabelArray, 0);
+				$strNodeTypeArray[0] = $objNodeArray[1]->strType;
+				for ($intIndex = 2; $intIndex < count($objNodeArray); $intIndex++)
+					$strNodeTypeArray[$intIndex - 1] = $objNodeArray[$intIndex]->strType;
+
+				$strToReturn = $this->GetDataGridHtmlComplexHelper($strNodeLabelArray, $strNodeTypeArray, 0);
 			}
-
-			if (class_exists($this->strClassName))
-				return sprintf('(%s) ? %s->__toString() : null;', $strToReturn, $strToReturn);
-
 			return $strToReturn;
 		}
+
+		protected function GetDataGridHtmlComplexHelper($strNodeLabelArray, $strNodeTypeArray, $intIndex) {
+			if (($intIndex + 1) == count($strNodeLabelArray))  {
+				return $this->GetDataGridHtmlHelper(
+					$strNodeLabelArray[$intIndex],
+					$strNodeTypeArray[$intIndex],
+					$this->strClassName);
+			}
+			else
+				return sprintf('(%s ? %s : null)', $strNodeLabelArray[$intIndex], $this->GetDataGridHtmlComplexHelper($strNodeLabelArray, $strNodeTypeArray, $intIndex + 1));
+		}
+
+		protected function GetDataGridHtmlHelper($strPropertyName, $strType, $strClassName ) {
+			$strToReturn = $strPropertyName;
+			switch ($strType) {
+				case 'QDateTime':
+					return sprintf('(%s) ? %s->ToString() : null', $strToReturn, $strToReturn);
+				case 'boolean':
+					return sprintf('(%s) ? QApplication::Translate(\'true\') : QApplication::Translate(\'false\') ', $strToReturn);
+				default:
+					if (class_exists($strClassName))
+						return sprintf('(%s) ? %s->__toString() : null;', $strToReturn, $strToReturn);
+					else
+						return $strToReturn;
+			}
+		}
+
 		public function GetDataGridOrderByNode() {
 			if ($this instanceof QQReverseReferenceNode)
 				return $this->_PrimaryKeyNode;
@@ -241,10 +262,7 @@
 		public function __construct($objParentNode, $strName, $strType, $strForeignKey, $strPropertyName = null) {
 			$this->objParentNode = $objParentNode;
 			if ($objParentNode) {
-				if (version_compare(PHP_VERSION, '5.1.0') == -1)
-					$this->strRootTableName = $objParentNode->__get('_RootTableName');
-				else
-					$this->strRootTableName = $objParentNode->_RootTableName;
+				$this->strRootTableName = $objParentNode->_RootTableName;
 			} else
 				throw new QCallerException('ReverseReferenceNodes must have a Parent Node');
 			$this->strName = $strName;
@@ -330,14 +348,10 @@
 	class QQAssociationNode extends QQBaseNode {
 		public function __construct($objParentNode) {
 			$this->objParentNode = $objParentNode;
-			if (version_compare(PHP_VERSION, '5.1.0') == -1)
-				$this->strRootTableName = $objParentNode->__get('_RootTableName');
-			else
-				$this->strRootTableName = $objParentNode->_RootTableName;
+			$this->strRootTableName = $objParentNode->_RootTableName;
 		}
 
 		public function GetColumnAlias(QQueryBuilder $objBuilder, $blnExpandSelection = false, QQCondition $objJoinCondition = null) {
-
 			// Make sure our Root Tables Match
 			if ($this->_RootTableName != $objBuilder->RootTableName)
 				throw new QCallerException('Cannot use QQNode for "' . $this->_RootTableName . '" when querying against the "' . $objBuilder->RootTableName . '" table', 3);
@@ -998,6 +1012,26 @@
 			return new QQDistinct();
 		}
 
+		static public function CustomNode($strSql) {
+			return new QQCustomNode($strSql);
+		}
+
+		static public function CustomJoin($strTableName, $strTableAlias, $strJoinConditionSql) {
+			try {
+				return new QQCustomJoin($strTableName, $strTableAlias, $strJoinConditionSql);
+			} catch (QCallerException $objExc) {
+				$objExc->IncrementOffset(); throw $objExc;
+			}
+		}
+
+		static public function CustomFrom($strTableName, $strTableAlias) {
+			try {
+				return new QQCustomFrom($strTableName, $strTableAlias);
+			} catch (QCallerException $objExc) {
+				$objExc->IncrementOffset(); throw $objExc;
+			}
+		}
+
 		/////////////////////////
 		// NamedValue QQ Node
 		/////////////////////////
@@ -1018,10 +1052,7 @@
 			$this->strPropertyName = 'PROPERTYFOO';
 			$this->strType = 'integer';
 			if ($this->objParentNode) {
-				if (version_compare(PHP_VERSION, '5.1.0') == -1)
-					$this->strRootTableName = $objNode->objParentNode->__get('_RootTableName');
-				else
-					$this->strRootTableName = $objNode->objParentNode->_RootTableName;
+				$this->strRootTableName = $objNode->objParentNode->_RootTableName;
 			} else
 				$this->strRootTableName = 'ROOTFOO';
 
@@ -1194,6 +1225,95 @@
 		}
 	}
 
+	class QQCustomNode extends QQNode {
+		public function __construct($strName) {
+			$this->strName = $strName;
+			$this->objParentNode = true;
+		}
+
+		public function GetColumnAliasHelper(QQueryBuilder $objBuilder, $strBegin, $strEnd, $blnExpandSelection) {}
+
+		public function GetColumnAlias(QQueryBuilder $objBuilder, $blnExpandSelection = false, QQCondition $objJoinCondition = null) {
+			return $this->strName;
+		}
+	}
+
+	class QQCustomJoin extends QQClause {
+		protected $strTableName;
+		protected $strTableAlias;
+		protected $strJoinConditionSql;
+
+		public function __construct($strTableName, $strTableAlias, $strJoinConditionSql) {
+			if (($strTableAlias[0] == 't') && (is_numeric(substr($strTableAlias, 1)))) {
+				throw new QCallerException('Alias name cannot be t#');
+			}
+
+			$this->strTableName = $strTableName;
+			$this->strTableAlias = $strTableAlias;
+			$this->strJoinConditionSql = $strJoinConditionSql;
+		}
+
+		public function UpdateQueryBuilder(QQueryBuilder $objBuilder) {
+			$strJoinSql = sprintf('LEFT JOIN %s%s%s AS %s%s%s ON %s',
+					$objBuilder->EscapeIdentifierBegin, $this->strTableName, $objBuilder->EscapeIdentifierEnd,
+					$objBuilder->EscapeIdentifierBegin, $this->strTableAlias, $objBuilder->EscapeIdentifierEnd,
+					$this->strJoinConditionSql);
+
+			$objBuilder->AddJoinCustomSqlItem($strJoinSql);
+		}
+
+		public function __toString() {
+			return 'QQCustomJoin';
+		}
+
+		public function __get($strName) {
+			switch ($strName) {
+				case 'TableName': return $this->strTableName;
+				case 'TableAlias': return $this->strTableAlias;
+				case 'JoinConditionSql': return $this->strJoinConditionSql;
+				
+				default:
+					try {
+						return parent::__get($strName);
+					} catch (QCallerException $objExc) { $objExc->IncrementOffset(); throw $objExc; }
+			}
+		}
+	}
+	
+	class QQCustomFrom extends QQClause {
+		protected $strTableName;
+		protected $strTableAlias;
+
+		public function __construct($strTableName, $strTableAlias) {
+			if (($strTableAlias[0] == 't') && (is_numeric(substr($strTableAlias, 1)))) {
+				throw new QCallerException('Alias name cannot be t#');
+			}
+
+			$this->strTableName = $strTableName;
+			$this->strTableAlias = $strTableAlias;
+		}
+
+		public function UpdateQueryBuilder(QQueryBuilder $objBuilder) {
+			$objBuilder->AddFromItem($this->strTableName, $this->strTableAlias);
+		}
+
+		public function __toString() {
+			return 'QQCustomFrom Clause';
+		}
+
+		public function __get($strName) {
+			switch ($strName) {
+				case 'TableName': return $this->strTableName;
+				case 'TableAlias': return $this->strTableAlias;
+
+				default:
+					try {
+						return parent::__get($strName);
+					} catch (QCallerException $objExc) { $objExc->IncrementOffset(); throw $objExc; }
+			}
+		}
+	}
+
 	class QQLimitInfo extends QQClause {
 		protected $intMaxRowCount;
 		protected $intOffset;
@@ -1215,22 +1335,35 @@
 		public function __toString() {
 			return 'QQLimitInfo Clause';
 		}
-		
-		public function __get($strName){
-		
-			switch ($strName){
-					case 'MaxRowCount':
-					return $this->intMaxRowCount;
-					break;
-					
-					case 'Offset':
-					return $this->intOffset;
-					break;
+		public function __get($strName) {
+			switch ($strName) {
+				case 'MaxRowCount': return $this->intMaxRowCount;
+				case 'Offset': return $this->intOffset;
 
-				}
-		}		
+				default:
+					try {
+						return parent::__get($strName);
+					} catch (QCallerException $objExc) { $objExc->IncrementOffset(); throw $objExc; }
+			}
+		}
+		public function __set($strName, $mixValue) {
+			switch ($strName) {
+				case 'MaxRowCount':
+					try {
+						return ($this->intMaxRowCount = QType::Cast($mixValue, QType::Integer));
+					} catch (QCallerException $objExc) { $objExc->IncrementOffset(); throw $objExc; }
+				case 'Offset':
+					try {
+						return ($this->intOffset = QType::Cast($mixValue, QType::Integer));
+					} catch (QCallerException $objExc) { $objExc->IncrementOffset(); throw $objExc; }
+				default:
+					try {
+						return (parent::__set($strName, $mixValue));
+					} catch (QCallerException $objExc) { $objExc->IncrementOffset(); throw $objExc; }
+			}
+		}
 	}
-	
+
 	class QQExpandVirtualNode extends QQClause {
 		protected $objNode;
 		public function __construct(QQVirtualNode $objNode) {
@@ -1399,6 +1532,7 @@
 		protected $strFromArray;
 		protected $strJoinArray;
 		protected $strJoinConditionArray;
+		protected $strCustomFromArray;
 		protected $strWhereArray;
 		protected $strOrderByArray;
 		protected $strGroupByArray;
@@ -1437,12 +1571,19 @@
 				$this->strEscapeIdentifierBegin, $strFullAlias, $this->strEscapeIdentifierEnd);
 		}
 
-		public function AddFromItem($strTableName) {
-			$strTableAlias = $this->GetTableAlias($strTableName);
+		public function AddFromItem($strTableName, $strAliasOverride = null) {
+			if (!$strAliasOverride) {
+				$strTableAlias = $this->GetTableAlias($strTableName);
 
-			$this->strFromArray[$strTableName] = sprintf('%s%s%s AS %s%s%s',
-				$this->strEscapeIdentifierBegin, $strTableName, $this->strEscapeIdentifierEnd,
-				$this->strEscapeIdentifierBegin, $strTableAlias, $this->strEscapeIdentifierEnd);
+				$this->strFromArray[$strTableName] = sprintf('%s%s%s AS %s%s%s',
+					$this->strEscapeIdentifierBegin, $strTableName, $this->strEscapeIdentifierEnd,
+					$this->strEscapeIdentifierBegin, $strTableAlias, $this->strEscapeIdentifierEnd);
+			} else {
+				// If an AliasOverride was submitted, we are doing a "custom from"
+				$this->strCustomFromArray[$strTableName . '+' . count($this->strCustomFromArray)] = sprintf('%s%s%s AS %s%s%s',
+					$this->strEscapeIdentifierBegin, $strTableName, $this->strEscapeIdentifierEnd,
+					$this->strEscapeIdentifierBegin, $strAliasOverride, $this->strEscapeIdentifierEnd);
+			}
 		}
 
 		public function GetTableAlias($strTableName) {
@@ -1631,6 +1772,10 @@
 				implode(",\r\n    ", $this->strFromArray),
 				implode("\r\n    ", $this->strJoinArray));
 
+			// Custom "FROM" Columns
+			if (count($this->strCustomFromArray))
+				$strSql .= ",\r\n    " . implode(",\r\n    ", $this->strCustomFromArray);
+
 			// WHERE Clause
 			if (count($this->strWhereArray)) {
 				$strWhere = implode("\r\n    ", $this->strWhereArray);
@@ -1659,6 +1804,10 @@
 
 		public function __get($strName) {
 			switch ($strName) {
+				case 'EscapeIdentifierBegin':
+					return $this->strEscapeIdentifierBegin;
+				case 'EscapeIdentifierEnd':
+					return $this->strEscapeIdentifierEnd;
 				case 'Database':
 					return $this->objDatabase;
 				case 'RootTableName':

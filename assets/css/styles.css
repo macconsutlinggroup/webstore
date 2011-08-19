@@ -1,44 +1,5 @@
-/*
-  LightSpeed Web Store
- 
-  NOTICE OF LICENSE
- 
-  This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to support@lightspeedretail.com <mailto:support@lightspeedretail.com>
- * so we can send you a copy immediately.
- 
-  DISCLAIMER
- 
- * Do not edit or add to this file if you wish to upgrade Web Store to newer
- * versions in the future. If you wish to customize Web Store for your
- * needs please refer to http://www.lightspeedretail.com for more information.
- 
- * @copyright  Copyright (c) 2011 Xsilva Systems, Inc. http://www.lightspeedretail.com
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- 
- */
-
-body{color:#fff;font-family:Arial, Helvetica, sans-serif;font-size:12px;margin:10px;padding:0;}
-#wrapper{margin:0 auto;width:760px;}
-#slider{background:url(images/slider_bg.png) no-repeat;height:209px;margin:0 auto;padding:9px 0 0;position:relative;width:740px;}
-#slider h2{font-size:12px;font-weight:700;margin:5px 0 3px;padding:0;}
-#slider p{color:#666;font-style:italic;margin:0;}
-#slider .scroll{clear:left;height:148px;margin:15px 0 0 50px;overflow:auto;overflow-x:hidden;position:relative;width:640px;}
-#slider .slider_product{display:block;float:left;text-align:center;width:155px;}
-#slider .scrollContainer div.panel{height:148px;padding:15px 0 0;width:640px;}
-#slider ul.navigation{list-style:none;margin:0;padding:0 0 9px;}
-#slider ul.navigation li{display:inline;margin:10px;}
-#slider ul.navigation a{color:#FFF;font-weight:700;padding:10px;text-decoration:none;text-shadow:#000 1px 1px 1px;}
-#slider ul.navigation a:focus{outline:none;}
-#slider .scrollButtons{cursor:pointer;position:absolute;top:110px;}
-#slider .scrollButtons.left{left:30px;}
-#slider .scrollButtons.right{right:30px;}
-#slider .hide{display:none;}
+	/* These are all EXAMPLES -- they are meant to be updated/changed/modified */
+	body { font: 12px 'Verdana', 'Arial', 'Helvetica'; }
 
 
 
@@ -160,7 +121,7 @@ body{color:#fff;font-family:Arial, Helvetica, sans-serif;font-size:12px;margin:1
 		p.create a { text-decoration: none; color: #337; font-weight: bold; }
 		p.create a:hover { text-decoration: underline; }
 
-	div#draftList { }
+	div#draftList { clear: both; }
 		div#draftList h1 { margin: 0; font: 20px 'Georgia', 'Times New Roman', 'Times'; font-weight: bold; }
 		div#draftList p { margin-top: 6px; margin-bottom: 18px;}
 
@@ -176,8 +137,3 @@ body{color:#fff;font-family:Arial, Helvetica, sans-serif;font-size:12px;margin:1
 		div#dashboard div#right { float: left; margin-left: 10px; width: 760px;}
 		div#dashboard div#right div#pnlList { margin-bottom: 10px; border: 1px solid #000; padding: 5px; height: 300px; overflow: auto; }
 		div#dashboard div#right div#pnlEdit { border: 1px solid #000; padding: 5px; background-color: #eef; height: 240px; overflow: auto; }
-
-
-
-
-

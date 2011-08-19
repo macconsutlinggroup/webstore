@@ -1,25 +1,33 @@
 <?php
-	// This class will render a List of HTML Checkboxes (inhereting from ListControl).
-	// By definition, checkbox lists are multiple-select ListControls.
-	// * "TextAlign" specifies if each ListItem's Name should be displayed to the left or to the right of the checkbox.
-	// * "CellPadding" specified the HTML Table's CellPadding
-	// * "CellSpacing" specified the HTML Table's CellSpacing
-	// * "RepeatColumn" specifies how many columns should be rendered in the HTML Table
-	// * "RepeatDirection" specifies which direction should the list go first...
-
-	// So assuming you have a list of 10 items, and you have RepeatColumn set to 3:
-	//	RepeatDirection::Horizontal would render as:
-	//	1	2	3
-	//	4	5	6
-	//	7	8	9
-	//	10
-	//
-	//	RepeatDirection::Vertical would render as:
-	//	1	5	8
-	//	2	6	9
-	//	3	7	10
-	//	4
-
+	/**
+	 * This class will render a List of HTML Checkboxes (inhereting from
+	 * ListControl). By definition, checkbox lists are multiple-select
+	 * ListControls.
+	 *
+	 * @property string $TextAlign specifies if each ListItem's Name should be
+	 * displayed to the left or to the right of the checkbox.
+	 * @property integer $CellPadding specified the HTML Table's CellPadding
+	 * @property integer $CellSpacing specified the HTML Table's CellSpacing
+	 * @property integer $RepeatColumns specifies how many columns should be
+	 * rendered in the HTML Table
+	 * @property string $RepeatDirection specifies which direction should the
+	 * list go first...
+	 *
+	 * So assuming you have a list of 10 items, and you have RepeatColumn set
+	 * to 3:
+	 *
+	 * RepeatDirection::Horizontal would render as:
+	 * 1	2	3
+	 * 4	5	6
+	 * 7	8	9
+	 * 10
+	 *
+	 * RepeatDirection::Vertical would render as:
+	 * 1	5	8
+	 * 2	6	9
+	 * 3	7	10
+	 * 4
+	 */
 	class QCheckBoxList extends QListControl {
 		///////////////////////////
 		// Private Member Variables
@@ -90,8 +98,6 @@
 
 			$strCustomAttributes = $this->GetCustomAttributes();
 
-			$strActions = $this->GetActionAttributes();
-
 			if ($this->intCellPadding >= 0)
 				$strCellPadding = sprintf('cellpadding="%s" ', $this->intCellPadding);
 			else
@@ -155,12 +161,28 @@
 							$strDisabledEnd = '</span>';
 							$strDisabled = 'disabled="disabled" ';
 						}
+						
+						if ($this->objItemsArray[$intIndex]->ItemStyle) {
+							$strLabelAttributes = $this->objItemsArray[$intIndex]->ItemStyle->GetAttributes();
+							$strCheckboxAttributes = $this->objItemsArray[$intIndex]->ItemStyle->GetNonStyleAttributes();
+						} else {
+							$strLabelAttributes = null;
+							$strCheckboxAttributes = null;
+						}
+
+						// ActionParameter is overridden by the framework to store and pass int othe event handler the index
+						// of the item that was actually checked.  Without this, the event handler will not be able to easily
+						// respond to actions based on specific items that have been checked/clicked.
+						$this->strActionParameter = $intIndex;
+
+						$strActions = $this->GetActionAttributes();
 
 						if ($this->strTextAlign == QTextAlign::Left) {
-							$strToReturn .= sprintf('<td>%s<label for="%s[%s]">%s</label><input id="%s[%s]" name="%s[%s]" type="checkbox" %s%s%s%s />%s</td>',
+							$strToReturn .= sprintf('<td>%s<label for="%s[%s]" %s>%s</label><input id="%s[%s]" name="%s[%s]" type="checkbox" %s%s%s%s%s />%s</td>',
 								$strDisabledStart,
 								$this->strControlId,
 								$intIndex,
+								$strLabelAttributes,
 								($this->blnHtmlEntities) ? QApplication::HtmlEntities($this->objItemsArray[$intIndex]->Name) : $this->objItemsArray[$intIndex]->Name,
 								$this->strControlId,
 								$intIndex,
@@ -170,9 +192,10 @@
 								$strChecked,
 								$strActions,
 								$strTabIndex,
+								$strCheckboxAttributes,
 								$strDisabledEnd);
 						} else {
-							$strToReturn .= sprintf('<td>%s<input id="%s[%s]" name="%s[%s]" type="checkbox" %s%s%s%s /><label for="%s[%s]">%s</label>%s</td>',
+							$strToReturn .= sprintf('<td>%s<input id="%s[%s]" name="%s[%s]" type="checkbox" %s%s%s%s%s /><label for="%s[%s]" %s>%s</label>%s</td>',
 								$strDisabledStart,
 								$this->strControlId,
 								$intIndex,
@@ -182,8 +205,10 @@
 								$strChecked,
 								$strActions,
 								$strTabIndex,
+								$strCheckboxAttributes,
 								$this->strControlId,
 								$intIndex,
+								$strLabelAttributes,
 								($this->blnHtmlEntities) ? QApplication::HtmlEntities($this->objItemsArray[$intIndex]->Name) : $this->objItemsArray[$intIndex]->Name,
 								$strDisabledEnd);
 						}
@@ -201,7 +226,7 @@
 		public function Validate() {
 			if ($this->blnRequired) {
 				if ($this->SelectedIndex == -1) {
-					$this->strValidationError = QApplication::Translate($this->strName) . ' ' . QApplication::Translate('is required');
+					$this->strValidationError = sprintf(QApplication::Translate('%s is required'),$this->strName);
 					return false;
 				}
 			}

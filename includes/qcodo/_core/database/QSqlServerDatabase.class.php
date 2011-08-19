@@ -321,6 +321,7 @@
 
 		public function Close() {
 			mssql_close($this->objMsSql);
+			$this->blnConnectedFlag = false;
 		}
 		
 		public function TransactionBegin() {
@@ -525,8 +526,10 @@
 
 					case QDatabaseFieldType::Date:
 					case QDatabaseFieldType::DateTime:
-					case QDatabaseFieldType::Time:
 						return new QDateTime($this->strColumnArray[$strColumnName]);
+
+					case QDatabaseFieldType::Time:
+						return QDateTime::FromTimeOnly($this->strColumnArray[$strColumnName]);
 
 					case QDatabaseFieldType::Float:
 						return QType::Cast($this->strColumnArray[$strColumnName], QType::Float);
@@ -682,6 +685,7 @@
 						break;
 					case 'varchar':
 					case 'nvarchar':
+					case 'sysname':
 						$this->strType = QDatabaseFieldType::VarChar;
 						break;
 					case 'text':

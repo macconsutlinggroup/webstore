@@ -24,10 +24,23 @@
 		const FormatDisplayTime = 'hh:mm:ss zz';
 		const FormatRfc822 = 'DDD, DD MMM YYYY hhhh:mm:ss ttt';
 
+		// Note: RFC 5322 actually obsoletes RFC 2822, but both have the same date time format specification
+		// Both constants are defined here just as a convenience
+		const FormatRfc2822 = 'DDD, DD MMM YYYY hhhh:mm:ss ttttt';
+		const FormatRfc5322 = 'DDD, DD MMM YYYY hhhh:mm:ss ttttt';
+
 		const FormatSoap = 'YYYY-MM-DDThhhh:mm:ss';
 
-		public static $DefaultFormat = QDateTime::FormatDisplayDate;
-		
+		public static $DefaultFormat = QDateTime::FormatDisplayDateTime;
+		public static $DefaultTimeOnlyFormat = QDateTime::FormatDisplayTime;
+		public static $DefaultDateOnlyFormat = QDateTime::FormatDisplayDate;
+
+		/**
+		 * Specify whether or not to perform Translation while doing a ToString() call
+		 * @var boolean
+		 */
+		public static $Translate = false;
+
 		/**
 		 * Returns a new QDateTime object that's set to "Now"
 		 * Set blnTimeValue to true (default) for a DateTime, and set blnTimeValue to false for just a Date
@@ -49,7 +62,7 @@
 
 		public static function NowToString($strFormat = null) {
 			$dttNow = new QDateTime(QDateTime::Now);
-			return $dttNow->__toString($strFormat);
+			return $dttNow->ToString($strFormat);
 		}
 		public function IsDateNull() {
 			return $this->blnDateNull;
@@ -75,6 +88,7 @@
 		}
 
 		/**
+		 * Constructs a new QDateTime from a integer-based timestamp value
 		 * @param integer $intTimestamp
 		 * @param DateTimeZone $objTimeZone
 		 * @return QDateTime
@@ -83,8 +97,20 @@
 			return new QDateTime(date('Y-m-d H:i:s', $intTimestamp), $objTimeZone);
 		}
 
-		public function __construct($mixValue = null, DateTimeZone $objTimeZone = null) {
+		/**
+		 * Constructs a new QDateTime as a time-only value.  Uses default QDateTime constructor
+		 * and simply nulls out the time value right afterward.
+		 * @param mixed $mixValue
+		 * @param DateTimeZone $objTimeZone
+		 * @return QDateTime
+		 */
+		public static function FromTimeOnly($mixValue = null, DateTimeZone $objTimeZone = null) {
+			$dttToReturn = new QDateTime($mixValue, $objTimeZone);
+			$dttToReturn->SetDate(null, null, null);
+			return $dttToReturn;
+		}
 
+		public function __construct($mixValue = null, DateTimeZone $objTimeZone = null) {
 			// Cloning from another QDateTime object
 			if ($mixValue instanceof QDateTime) {
 				if ($objTimeZone)
@@ -142,7 +168,10 @@
 				// Valid Value String
 				if ($intTimestamp) {
 					// To deal with "Tues" and date skipping bug in PHP 5.2
-					parent::__construct(date('Y-m-d H:i:s', parent::format('U')));
+					if ($objTimeZone)
+						parent::__construct(date('Y-m-d H:i:s', parent::format('U')), $objTimeZone);
+					else
+						parent::__construct(date('Y-m-d H:i:s', parent::format('U')));
 
 					// We MUST assume that Date isn't null
 					$this->blnDateNull = false;
@@ -181,6 +210,18 @@
 		}
 		public function __wakeup() {
 			parent::__construct($this->strSerializedData);
+		}
+
+		public function __toString() {
+			// For PHP 5.3 Compatability
+			$strArgumentArray = func_get_args();
+
+			if (count($strArgumentArray) >= 1)
+				$strFormat = $strArgumentArray[0];
+			else
+				$strFormat = null;
+
+			return $this->ToString($strFormat);
 		}
 
 		/**
@@ -223,18 +264,16 @@
 		 * @param string $strFormat the format of the date
 		 * @return string the formatted date as a string
 		 */
-		public function __toString() {
-			// For PHP 5.3 Compatability
-			$strArgumentArray = func_get_args();
-
-			if (count($strArgumentArray) >= 1)
-				$strFormat = $strArgumentArray[0];
-			else
-				$strFormat = null;
-
+		public function ToString($strFormat = null) {
 			$this->ReinforceNullProperties();
-			if (is_null($strFormat))
-				$strFormat = QDateTime::$DefaultFormat;
+			if (is_null($strFormat)) {
+				if ($this->IsTimeNull())
+					$strFormat = QDateTime::$DefaultDateOnlyFormat;
+				else if ($this->IsDateNull())
+					$strFormat = QDateTime::$DefaultTimeOnlyFormat;
+				else
+					$strFormat = QDateTime::$DefaultFormat;
+			}
 
 			preg_match_all('/(?(?=D)([D]+)|(?(?=M)([M]+)|(?(?=Y)([Y]+)|(?(?=h)([h]+)|(?(?=m)([m]+)|(?(?=s)([s]+)|(?(?=z)([z]+)|(?(?=t)([t]+)|))))))))/', $strFormat, $strArray);
 			$strArray = $strArray[0];
@@ -256,10 +295,10 @@
 							$strToReturn .= parent::format('m');
 							break;
 						case 'MMM':
-							$strToReturn .= parent::format('M');
+							$strToReturn .= (self::$Translate) ? QApplication::Translate(parent::format('M')) : parent::format('M');
 							break;
 						case 'MMMM':
-							$strToReturn .= parent::format('F');
+							$strToReturn .= (self::$Translate) ? QApplication::Translate(parent::format('F')) : parent::format('F');
 							break;
 			
 						case 'D':
@@ -269,10 +308,10 @@
 							$strToReturn .= parent::format('d');
 							break;
 						case 'DDD':
-							$strToReturn .= parent::format('D');
+							$strToReturn .= (self::$Translate) ? QApplication::Translate(parent::format('D')) : parent::format('D');
 							break;
 						case 'DDDD':
-							$strToReturn .= parent::format('l');
+							$strToReturn .= (self::$Translate) ? QApplication::Translate(parent::format('l')) : parent::format('l');
 							break;
 			
 						case 'YY':
@@ -322,6 +361,9 @@
 						case 'tttt':
 							$strToReturn .= parent::format('e');
 							break;
+						case 'ttttt':
+							$strToReturn .= parent::format('O');
+							break;
 
 						default:
 							$strToReturn .= $strArray[$intIndex];
@@ -354,7 +396,12 @@
 			$intHour = QType::Cast($intHour, QType::Integer);
 			$intMinute = QType::Cast($intMinute, QType::Integer);
 			$intSecond = QType::Cast($intSecond, QType::Integer);
-			$this->blnTimeNull = false;
+
+			if (is_null($intHour))
+				$this->blnTimeNull = true;
+			else
+				$this->blnTimeNull = false;
+
 			parent::setTime($intHour, $intMinute, $intSecond);
 			return $this;
 		}
@@ -363,7 +410,12 @@
 			$intYear = QType::Cast($intYear, QType::Integer);
 			$intMonth = QType::Cast($intMonth, QType::Integer);
 			$intDay = QType::Cast($intDay, QType::Integer);
-			$this->blnDateNull = false;
+
+			if (is_null($intYear))
+				$this->blnDateNull = true;
+			else
+				$this->blnDateNull = false;
+
 			parent::setDate($intYear, $intMonth, $intDay);
 			return $this;
 		}
@@ -508,9 +560,6 @@
 
 		public function Add($dtsSpan){
 			if ($dtsSpan instanceof QDateTimeSpan) {
-				// Get this DateTime timestamp
-				$intTimestamp = $this->Timestamp;
-
 				// And add the Span Second count to it
 				$this->Timestamp = $this->Timestamp + $dtsSpan->Seconds;
 				return $this;
@@ -760,44 +809,4 @@
       void DateTime::setTimezone(DateTimeZone object)
       - Sets the timezone for the DateTime object
 */
-
-/* Some quick and dirty test harnesses
-	$dtt1 = new QDateTime();
-	$dtt2 = new QDateTime();
-	printTable($dtt1, $dtt2);
-	$dtt2->setDate(2000, 1, 1);
-	$dtt1->setTime(0,0,3);
-	$dtt2->setTime(0,0,2);
-//	$dtt2->Month++;
-	printTable($dtt1, $dtt2);
-
-	function printTable($dtt1, $dtt2) {
-		print('<table border="1" cellpadding="2"><tr><td>');
-		printDate($dtt1);
-		print('</td><td>');
-		printDate($dtt2);
-		print ('</td></tr>');
-		
-		print ('<tr><td colspan="2" align="center">IsEqualTo: <b>' . (($dtt1->IsEqualTo($dtt2)) ? 'Yes' : 'No') . '</b></td></tr>');
-		print ('<tr><td colspan="2" align="center">IsEarlierThan: <b>' . (($dtt1->IsEarlierThan($dtt2)) ? 'Yes' : 'No') . '</b></td></tr>');
-		print ('<tr><td colspan="2" align="center">IsLaterThan: <b>' . (($dtt1->IsLaterThan($dtt2)) ? 'Yes' : 'No') . '</b></td></tr>');
-		print ('<tr><td colspan="2" align="center">IsEarlierOrEqualTo: <b>' . (($dtt1->IsEarlierOrEqualTo($dtt2)) ? 'Yes' : 'No') . '</b></td></tr>');
-		print ('<tr><td colspan="2" align="center">IsLaterOrEqualTo: <b>' . (($dtt1->IsLaterOrEqualTo($dtt2)) ? 'Yes' : 'No') . '</b></td></tr>');
-		print('</table>');
-	}
-	
-	function printDate($dtt) {
-		print ('Time Null: ' . (($dtt->IsTimeNull()) ? 'Yes' : 'No'));
-		print ('<br/>');
-		print ('Date Null: ' . (($dtt->IsDateNull()) ? 'Yes' : 'No'));
-		print ('<br/>');
-		print ('Date: ' . $dtt->__toString(QDateTime::FormatDisplayDateTimeFull));
-		print ('<br/>');
-		print ('Month: ' . $dtt->Month . '<br/>');
-		print ('Day: ' . $dtt->Day . '<br/>');
-		print ('Year: ' . $dtt->Year . '<br/>');
-		print ('Hour: ' . $dtt->Hour . '<br/>');
-		print ('Minute: ' . $dtt->Minute . '<br/>');
-		print ('Second: ' . $dtt->Second . '<br/>');
-	}*/
 ?>

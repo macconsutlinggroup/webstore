@@ -1,22 +1,28 @@
 <?php
-	// This class will render an HTML Textbox -- which can either be <input type="text">,
-	// <input type="password"> or <textarea> depending on the TextMode (see below).
-	// * "Columns" is the "cols" html attribute (applicable for MultiLine textboxes)
-	// * "Text" is the contents of the textbox, itself
-	// * "MaxLength" is the "maxlength" html attribute (applicable for SingleLine textboxes)
-	// * "MinLength" is the minimum requred length to pass validation
-	// * "ReadOnly" is the "readonly" html attribute (making a textbox "ReadOnly" is very similar to setting
-	//   the textbox to Enabled=false.  There are only subtle display-differences, I believe, between the two.
-	// * "Rows" is the "rows" html attribute (applicable for MultiLine textboxes)
-	// * "TextMode" can be "SingleLine", "MultiLine", and "Password".
-	// * "Wrap" is the "wrap" html attribute (applicable for MultiLine textboxes)
-	//
-	// * "CrossScripting" can be Allow, HtmlEntities, or Deny.  Deny is the default.
-	//   Prevents cross scripting hacks.  HtmlEntities causes framework to automatically call php
-	//   function htmlentities on the input data.  Allow allows everything to come through without altering
-	//   at all.  USE "ALLOW" judiciously: using ALLOW on text entries, and then outputting that data
-	//   WILL allow hackers to perform cross scripting hacks.
-
+	/**
+	 * This class will render an HTML Textbox -- which can either be <input type="text">,
+	 * <input type="password"> or <textarea> depending on the TextMode (see below).
+	 *
+	 * @package Controls
+	 *
+	 * @property integer $Columns is the "cols" html attribute (applicable for MultiLine textboxes)	 
+	 * @property string $Text is the contents of the textbox, itself
+	 * @property string $LabelForRequired
+	 * @property string $LabelForRequiredUnnamed
+	 * @property string $LabelForTooShort
+	 * @property string $LabelForTooShortUnnamed
+	 * @property string $LabelForTooLong
+	 * @property string $LabelForTooLongUnnamed
+	 * @property string $Format
+	 * @property integer $MaxLength is the "maxlength" html attribute (applicable for SingleLine textboxes)
+	 * @property integer $MinLength is the minimum requred length to pass validation
+	 * @property boolean $ReadOnly is the "readonly" html attribute (making a textbox "ReadOnly" is very similar to setting the textbox to Enabled=false.  There are only subtle display-differences, I believe, between the two.
+	 * @property integer $Rows is the "rows" html attribute (applicable for MultiLine textboxes)
+	 * @property string $TextMode can be "SingleLine", "MultiLine", and "Password".
+ 	 * @property string $CrossScripting can be Allow, HtmlEntities, or Deny.  Deny is the default. Prevents cross scripting hacks.  HtmlEntities causes framework to automatically call php function htmlentities on the input data.  Allow allows everything to come through without altering at all.  USE "ALLOW" judiciously: using ALLOW on text entries, and then outputting that data WILL allow hackers to perform cross scripting hacks.
+	 * @property boolean $ValidateTrimmed
+	 * @property boolean $Wrap is the "wrap" html attribute (applicable for MultiLine textboxes)
+	 */
 	abstract class QTextBoxBase extends QControl {
 		///////////////////////////
 		// Private Member Variables
@@ -59,6 +65,13 @@
 
 			$this->strLabelForTooLong = QApplication::Translate('%s must have at most %s characters');
 			$this->strLabelForTooLongUnnamed = QApplication::Translate('Must have at most %s characters');
+
+			// When tapping into a text field on the iphone, the "Go" button on the keyboard causes a
+			// form.submit() to be called which Qcodo will need to intercept
+			if (QApplication::IsBrowser(QBrowserType::Iphone)) {
+				$this->AddAction(new QFocusEvent(), new QJavaScriptAction(sprintf("qc.getW('%s').startTextboxFormSubmitOverride('%s');", $this->strControlId, $this->strControlId)));
+				$this->AddAction(new QBlurEvent(), new QJavaScriptAction(sprintf("qc.getW('%s').endTextboxFormSubmitOverride('%s');", $this->strControlId, $this->strControlId)));
+			}
 		}
 
 
@@ -344,7 +357,7 @@
 				// BEHAVIOR
 				case "CrossScripting":
 					try {
-						$this->strCrossScripting = QType::Cast($mixValue, QType::Boolean);
+						$this->strCrossScripting = QType::Cast($mixValue, QType::String);
 						break;
 					} catch (QInvalidCastException $objExc) {
 						$objExc->IncrementOffset();
@@ -424,7 +437,7 @@
 	class QCrossScriptingException extends QCallerException {
 		public function __construct($strControlId) {
 			parent::__construct("Cross Scripting Violation: Potential cross script injection in Control \"" .
-				$strControlId . "\"\r\nTo allow any input on this TextBox control, set CrossScripting to QCrossScripting::Alow", 2);
+				$strControlId . "\"\r\nTo allow any input on this TextBox control, set CrossScripting to QCrossScripting::Allow", 2);
 		}
 	}
 ?>

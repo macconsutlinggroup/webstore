@@ -1,29 +1,39 @@
 <?php
-	// This class is meant to be a date-picker.  It will essentially render an uneditable HTML textbox
-	// as well as a calendar icon.  The idea is that if you click on the icon or the textbox,
-	// it will pop up a calendar in a new small window.
-	// * "Date" is a Date object for the specified date.
-
-	class QDateTimePicker extends QControl {
+	class QDateTimePickerBase extends QControl {
 		///////////////////////////
 		// Private Member Variables
 		///////////////////////////
+
+		// DEFAULTS
+		// These are set at the bottom of this script
+		public static $DefaultMinimumYear;
+		public static $DefaultMaximumYear;
 
 		// MISC
 		protected $dttDateTime = null;
 		protected $strDateTimePickerType = QDateTimePickerType::Date;
 		protected $strDateTimePickerFormat = QDateTimePickerFormat::MonthDayYear;
 
-		protected $intMinimumYear = 1970;
-		protected $intMaximumYear = 2010;
+		// If these stay null, then it will use the $DefaultMinimumYear and $DefaultMaximumYear static variables on QDateTimePicker
+		protected $intMinimumYear = null;
+		protected $intMaximumYear = null;
 
 		protected $intSelectedMonth = null;
 		protected $intSelectedDay = null;
 		protected $intSelectedYear = null;
 
+		// Default format of the Hour field (see http://www.php.net/date for more info)
+		protected $strHourFormat = 'g A';
+
+		// Default format of Month field (see http://www.php.net/strftime for more info)
+		protected $strMonthFormat = '%b'; 
+
+		// Optional HTML to Insert Between ListBoxes
+		protected $strDividerHtml;
+		protected $strSpacerHtml;
+
 		// SETTINGS
 		protected $strJavaScripts = '_core/date_time_picker.js';
-		protected $strCssClass = 'datetimepicker';
 
 		//////////
 		// Methods
@@ -112,14 +122,13 @@
 			if ($strStyle)
 				$strAttributes .= sprintf(' style="%s"', $strStyle);
 
-			$strCommand = sprintf(' onchange="Qcodo__DateTimePicker_Change(\'%s\', this);"', $this->strControlId);
+			$strCommand = sprintf(' onchange="qc.dtpChange(\'%s\', this);"', $this->strControlId);
 
-			if ($this->dttDateTime) {
+			if ($this->dttDateTime)
 				$dttDateTime = $this->dttDateTime;
-			} else {
+			else
 				$dttDateTime = new QDateTime();
-			}
-
+			
 			$strToReturn = '';
 
 			// Generate Date-portion
@@ -139,8 +148,7 @@
 						$strMonthListbox .= sprintf('<option value="%s"%s>%s</option>',
 							$intMonth,
 							$strSelected,
-//							date('M', mktime(0, 0, 0, $intMonth, 1, 2000)));
-							strftime("%b", mktime(0, 0, 0, $intMonth, 1, 2000)));
+							QApplication::Translate(strftime($this->strMonthFormat, mktime(0, 0, 0, $intMonth, 1, 2000))));
 					}
 					$strMonthListbox .= '</select>';
 
@@ -189,12 +197,17 @@
 						}
 					}
 					$strDayListbox .= '</select>';
-					
+
+					// Figure Out Min and Max Years
+					$intMinimumYear = (is_null($this->intMinimumYear)) ? QDateTimePicker::$DefaultMinimumYear : $this->intMinimumYear;
+					$intMaximumYear = (is_null($this->intMaximumYear)) ? QDateTimePicker::$DefaultMaximumYear : $this->intMaximumYear;
+
 					// Year
 					$strYearListbox = sprintf('<select name="%s_lstYear" id="%s_lstYear" class="year" %s%s>', $this->strControlId, $this->strControlId, $strAttributes, $strCommand);
 					if (!$this->blnRequired || $dttDateTime->IsDateNull())
 						$strYearListbox .= '<option value="">--</option>';
-					for ($intYear = $this->intMinimumYear; $intYear <= $this->intMaximumYear; $intYear++) {
+					
+					for ($intYear = $intMinimumYear; $intYear <= $intMaximumYear; $intYear++) {
 						if (/*!$dttDateTime->IsDateNull() && */(($dttDateTime->Year == $intYear) || ($this->intSelectedYear == $intYear)))
 							$strSelected = ' selected="selected"';
 						else
@@ -206,13 +219,13 @@
 					// Put it all together
 					switch ($this->strDateTimePickerFormat) {
 						case QDateTimePickerFormat::MonthDayYear:
-							$strToReturn .= $strMonthListbox . $strDayListbox . $strYearListbox;
+							$strToReturn .= $strMonthListbox . $this->strSpacerHtml . $strDayListbox . $this->strSpacerHtml . $strYearListbox;
 							break;
 						case QDateTimePickerFormat::DayMonthYear:
-							$strToReturn .= $strDayListbox . $strMonthListbox . $strYearListbox;
+							$strToReturn .= $strDayListbox .  $this->strSpacerHtml  . $strMonthListbox . $this->strSpacerHtml . $strYearListbox;
 							break;
 						case QDateTimePickerFormat::YearMonthDay:
-							$strToReturn .= $strYearListbox . $strMonthListbox . $strDayListbox;
+							$strToReturn .= $strYearListbox . $this->strSpacerHtml . $strMonthListbox . $this->strSpacerHtml . $strDayListbox;
 							break;
 					}
 			}
@@ -220,7 +233,7 @@
 			switch ($this->strDateTimePickerType) {
 				case QDateTimePickerType::DateTime:
 				case QDateTimePickerType::DateTimeSeconds:
-					$strToReturn .= '<span class="divider"></span>';
+					$strToReturn .= $this->strDividerHtml;
 			}
 
 			switch ($this->strDateTimePickerType) {
@@ -240,7 +253,7 @@
 						$strHourListBox .= sprintf('<option value="%s"%s>%s</option>',
 							$intHour,
 							$strSelected,
-							date('g A', mktime($intHour, 0, 0, 1, 1, 2000)));
+							date($this->strHourFormat, mktime($intHour, 0, 0, 1, 1, 2000)));
 					}
 					$strHourListBox .= '</select>';
 
@@ -352,7 +365,11 @@
 				case "DateTimePickerFormat": return $this->strDateTimePickerFormat;
 				case "MinimumYear": return $this->intMinimumYear;
 				case "MaximumYear": return $this->intMaximumYear;
-
+				case "HourFormat": return $this->strHourFormat;
+				case "MonthFormat": return $this->strMonthFormat;
+				case "DividerHtml": return $this->strDividerHtml;
+				case "SpacerHtml": return $this->strSpacerHtml;
+				
 				default:
 					try {
 						return parent::__get($strName);
@@ -425,7 +442,41 @@
 						throw $objExc;
 					}
 					break;
+				case "HourFormat":
+						try {
+							$this->strHourFormat = QType::Cast($mixValue, QType::String);
+						} catch (QInvalidCastException $objExc) {
+							$objExc->IncrementOffset();
+							throw $objExc;
+						}
+						break;
+				case "MonthFormat":
+						try {
+							$this->strMonthFormat = QType::Cast($mixValue, QType::String);
+						} catch (QInvalidCastException $objExc) {
+							$objExc->IncrementOffset();
+							throw $objExc;
+						}
+						break;
 
+				case "DividerHtml":
+						try {
+							$this->strDividerHtml = QType::Cast($mixValue, QType::String);
+						} catch (QInvalidCastException $objExc) {
+							$objExc->IncrementOffset();
+							throw $objExc;
+						}
+						break;
+
+				case "SpacerHtml":
+						try {
+							$this->strSpacerHtml = QType::Cast($mixValue, QType::String);
+						} catch (QInvalidCastException $objExc) {
+							$objExc->IncrementOffset();
+							throw $objExc;
+						}
+						break;
+						
 				default:
 					try {
 						parent::__set($strName, $mixValue);
@@ -437,4 +488,7 @@
 			}
 		}
 	}
+
+	QDateTimePickerBase::$DefaultMinimumYear = date('Y') - 30;
+	QDateTimePickerBase::$DefaultMaximumYear = date('Y') + 5; 
 ?>

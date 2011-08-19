@@ -37,30 +37,6 @@
 				// Use QCryptography to Decrypt
 				$objCrypto = new QCryptography(QForm::$EncryptionKey, true);
 				$strSerializedForm = $objCrypto->Decrypt($strSerializedForm);
-				
-			}
-
-			// Uncompress (if available)
-			if (function_exists('gzcompress'))
-				$strSerializedForm = gzuncompress($strSerializedForm);
-
-			return $strSerializedForm;
-		}
-
-		public static function LoadOLD($strPostDataState) {
-
-			$strSerializedForm = $strPostDataState;
-
-			if (is_null(QForm::$EncryptionKey)) {
-				// Cleanup from FormState Base64 Encoding
-				$strSerializedForm = str_replace('-', '+', $strSerializedForm);
-				$strSerializedForm = str_replace('_', '/', $strSerializedForm);
-				
-				$strSerializedForm = base64_decode($strSerializedForm);
-			} else {
-				// Use QCryptography to Decrypt
-				$objCrypto = new QCryptography(QForm::$EncryptionKey, true);
-				$strSerializedForm = $objCrypto->Decrypt($strSerializedForm);
 			}
 
 			// Uncompress (if available)

@@ -1,27 +1,3 @@
-/*
-  LightSpeed Web Store
- 
-  NOTICE OF LICENSE
- 
-  This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to support@lightspeedretail.com <mailto:support@lightspeedretail.com>
- * so we can send you a copy immediately.
- 
-  DISCLAIMER
- 
- * Do not edit or add to this file if you wish to upgrade Web Store to newer
- * versions in the future. If you wish to customize Web Store for your
- * needs please refer to http://www.lightspeedretail.com for more information.
- 
- * @copyright  Copyright (c) 2011 Xsilva Systems, Inc. http://www.lightspeedretail.com
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- 
- */
 ////////////////////////////////////////////
 // PostBack and AjaxPostBack
 ////////////////////////////////////////////
@@ -42,7 +18,7 @@
 		for (var strControlId in qcodo.controlModifications)
 			for (var strProperty in qcodo.controlModifications[strControlId])
 				strToReturn += strControlId + " " + strProperty + " " + qcodo.controlModifications[strControlId][strProperty] + "\n";
-		qcodo.controlModifications = new Array();
+		qcodo.controlModifications = {};
 		return strToReturn;
 	};
 
@@ -77,6 +53,14 @@
 			return strToReturn.substring(1);
 		else
 			return "";
+	};
+
+	qcodo.interceptSubmit = function(event, strControlId) {
+		var objControl = document.getElementById(strControlId);
+		event.keyCode = 13;
+		if (objControl.onkeypress) objControl.onkeypress(event);
+		else if (objControl.onkeydown) objControl.onkeydown(event);
+		objControl.blur();
 	};
 
 	qcodo.ajaxQueue = new Array();
@@ -122,15 +106,11 @@
 				try {
 					var objXmlDoc = objRequest.responseXML;
 //					qcodo.logMessage(objRequest.responseText, true);
-					// alert('AJAX Response Received:' + objXmlDoc);
+//					alert('AJAX Response Received');
 
 					if (!objXmlDoc) {
 						alert("An error occurred during AJAX Response parsing.\r\n\r\nThe error response will appear in a new popup.");
 						var objErrorWindow = window.open('about:blank', 'qcodo_error','menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes,width=1000,height=700,left=50,top=50');
-						if (! objErrorWindow) {
-							alert("Could not open a new window to display the error... are you, perchance, using a popup blocker?");
-							return;
-						}
 						objErrorWindow.focus();
 						objErrorWindow.document.write(objRequest.responseText);
 						return;

@@ -1,27 +1,3 @@
-/*
-  LightSpeed Web Store
- 
-  NOTICE OF LICENSE
- 
-  This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to support@lightspeedretail.com <mailto:support@lightspeedretail.com>
- * so we can send you a copy immediately.
- 
-  DISCLAIMER
- 
- * Do not edit or add to this file if you wish to upgrade Web Store to newer
- * versions in the future. If you wish to customize Web Store for your
- * needs please refer to http://www.lightspeedretail.com for more information.
- 
- * @copyright  Copyright (c) 2011 Xsilva Systems, Inc. http://www.lightspeedretail.com
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- 
- */
 ///////////////////////////////
 // Timers-related functionality
 ///////////////////////////////
@@ -51,7 +27,7 @@
 
 		if (objEvent) {
 			if (typeof(objEvent.clientX) != "undefined") {
-				if (qcodo.isBrowser(qcodo.SAFARI)) {
+				if (qcodo.isBrowser(qcodo.SAFARI) || qcodo.isBrowser(qcodo.CHROME)) {
 					qcodo.mouse.x = objEvent.clientX - window.document.body.scrollLeft;
 					qcodo.mouse.y = objEvent.clientY - window.document.body.scrollTop;
 					qcodo.client.x = objEvent.clientX - window.document.body.scrollLeft;
@@ -65,14 +41,11 @@
 			};
 
 			if (qcodo.isBrowser(qcodo.IE)) {
-				// PAT MOD -- IE's drag and drop was completely dead because the code was unable to see
-				// left clicks.  It seems IE has changed to use the conventional button == 0 (horrible) indicator for left
-				// mouse down.  Modified to account for either scenario:
-				qcodo.mouse.left = ( (objEvent.button == 0 || (objEvent.button & 1)) ? true : false);
+				qcodo.mouse.left = ((objEvent.button & 1) ? true : false);
 				qcodo.mouse.right = ((objEvent.button & 2) ? true : false);
 				qcodo.mouse.middle = ((objEvent.button & 4) ? true : false);
-			} else if (qcodo.isBrowser(qcodo.SAFARI)) {
-				qcodo.mouse.left = (( objEvent.button == 0 || (objEvent.button && !objEvent.ctrlKey)) ? true : false);
+			} else if (qcodo.isBrowser(qcodo.SAFARI) || qcodo.isBrowser(qcodo.CHROME)) {
+				qcodo.mouse.left = ((objEvent.button && !objEvent.ctrlKey) ? true : false);
 				qcodo.mouse.right = ((objEvent.button && objEvent.ctrlKey) ? true : false);
 				qcodo.mouse.middle = false;
 			} else {
@@ -95,8 +68,8 @@
 		};
 		
 		/*
-			qcodo.client.width = (qcodo.isBrowser(qcodo.SAFARI)) ? window.innerWidth : window.document.body.clientWidth;
-			qcodo.client.height = (qcodo.isBrowser(qcodo.SAFARI)) ? window.innerHeight: window.document.body.clientHeight;
+			qcodo.client.width = (qcodo.isBrowser(qcodo.SAFARI) || qcodo.isBrowser(qcodo.CHROME)) ? window.innerWidth : window.document.body.clientWidth;
+			qcodo.client.height = (qcodo.isBrowser(qcodo.SAFARI) || qcodo.isBrowser(qcodo.CHROME)) ? window.innerHeight: window.document.body.clientHeight;
 
 			qcodo.page.x = qcodo.mouse.x + qcodo.scroll.x;
 			qcodo.page.y = qcodo.mouse.y + qcodo.scroll.y;
@@ -111,15 +84,15 @@
 			qcodo.scroll.height = window.document.body.scrollHeight - qcodo.client.height;
 		*/
 		if (window.document.compatMode == "BackCompat") {
-			qcodo.client.width = (qcodo.isBrowser(qcodo.SAFARI)) ? window.innerWidth : window.document.body.clientWidth;
-			qcodo.client.height = (qcodo.isBrowser(qcodo.SAFARI)) ? window.innerHeight: window.document.body.clientHeight;
+			qcodo.client.width = (qcodo.isBrowser(qcodo.SAFARI) || qcodo.isBrowser(qcodo.CHROME)) ? window.innerWidth : window.document.body.clientWidth;
+			qcodo.client.height = (qcodo.isBrowser(qcodo.SAFARI) || qcodo.isBrowser(qcodo.CHROME)) ? window.innerHeight: window.document.body.clientHeight;
 
 			qcodo.page.width = Math.max(window.document.body.scrollWidth, qcodo.client.width);
 			qcodo.page.height = Math.max(window.document.body.scrollHeight, qcodo.client.height);
 
 			qcodo.scroll.x = window.scrollX || window.document.body.scrollLeft;
 			qcodo.scroll.y = window.scrollY || window.document.body.scrollTop;
-		} else if (qcodo.isBrowser(qcodo.SAFARI)) {
+		} else if (qcodo.isBrowser(qcodo.SAFARI) || qcodo.isBrowser(qcodo.CHROME)) {
 			qcodo.client.width = window.innerWidth;
 			qcodo.client.height = window.innerHeight;
 
