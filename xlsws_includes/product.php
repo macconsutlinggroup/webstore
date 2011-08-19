@@ -622,7 +622,6 @@ class xlsws_product extends xlsws_index {
 		$this->cartPnl->RemoveChildControls(true);
 		$this->build_cart();
 		$this->cartPnl->Refresh();
-		$this->prod = $objOriginal;
 	}
 
 	/**
