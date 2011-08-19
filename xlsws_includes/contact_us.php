@@ -121,7 +121,7 @@ class xlsws_contact_us extends xlsws_index {
 		$this->build_subject_widget();
 		$this->build_phone_widget();
 		$this->build_comments_widget();
-		$this->build_captcha_widget();
+		$this->build_captcha_widget($this);
 	}
 
 	/**
@@ -130,15 +130,12 @@ class xlsws_contact_us extends xlsws_index {
 	 * @param none
 	 * @return none
 	 */
-	private function checkLoginFields() {
-		if($customer)
+    private function checkLoginFields() {
+        if (isset($customer)) {
 			$this->txtName->Text = $customer->Mainname;
-
-		if($customer)
 			$this->txtEmail->Text = $customer->Email;
-
-		if($customer)
-			$this->txtPhone->Text = $customer->Mainphone;
+            $this->txtPhone->Text = $customer->Mainphone;
+        }
 	}
 
 	/**
