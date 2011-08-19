@@ -49,5 +49,8 @@ $this->misc_components['search_img']->SetCustomStyle('float','left');
 $this->misc_components['advanced_search'] = new QImageButton($this->searchPnl, 'xlsAdvancedSearch');
 $this->misc_components['advanced_search']->ImageUrl = templateNamed("css/images/adv_search.png");
 $this->misc_components['advanced_search']->CssClass= 'searchButton';
-$this->misc_components['advanced_search']->AddAction(new QClickEvent(), new QJavaScriptAction("document.location.href='index.php?xlspg=advanced_search&c=".$_GET['c']."'"));
+if (isset($_GET['c']))
+    $this->misc_components['advanced_search']->AddAction(new QClickEvent(), new QJavaScriptAction("document.location.href='index.php?xlspg=advanced_search&c=".$_GET['c']."'"));
+else
+    $this->misc_components['advanced_search']->AddAction(new QClickEvent(), new QJavaScriptAction("document.location.href='index.php?xlspg=advanced_search'"));
 $this->misc_components['advanced_search']->SetCustomStyle('float','left');
