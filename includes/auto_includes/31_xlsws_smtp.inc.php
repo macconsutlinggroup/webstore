@@ -43,7 +43,7 @@ if (!empty(QApplication::$Database)) {
                     $strPort = '465';
                     break;
                 default:
-                    QApplication::Log(E_WARNING, 'smtp',
+                    QApplication::Log(E_NOTICE, 'smtp',
                         _sp('Invalid SMTP SSL mode defined'));
                     break;
             }
