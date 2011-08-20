@@ -244,7 +244,7 @@ class Images extends ImagesGen {
 			$this->strImageData = $blbImage;
 		}
 
-		imagedestroy($img);
+		unset($blbImage);
 	}
 
 	public function Show() {
