@@ -147,6 +147,7 @@ foreach (ImagesType::$NameArray as $strType) {
 	$imgid = $_GET[$strType];
 	$imgid = trim($imgid);
 
+    $img = false;
 	if (!empty($imgid))
 		$img = Images::Load($imgid);
 
