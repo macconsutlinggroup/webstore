@@ -286,12 +286,11 @@ class Images extends ImagesGen {
 			$intHeight = $this->Height;
 		}
 
-
 		$rawImage = file_get_contents(
 			Images::GetImageFallbackPath());
 		$rawImage = imagecreatefromstring($rawImage);
 
-		if (array($intWidth, $Height) !=
+		if (array($intWidth, $intHeight) !=
 			ImagesType::GetSize(ImagesType::normal))
 				$rawImage = Images::Resize(
 					$rawImage, $intWidth, $intHeight);
