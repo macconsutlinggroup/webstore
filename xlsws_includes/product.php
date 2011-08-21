@@ -447,6 +447,8 @@ class xlsws_product extends xlsws_index {
 			$objProduct = $this->GetMatrixSelection();
 
 			if (!$objProduct) {
+		$this->RemoveControl($this->pnlImg->ControlId);
+		$this->create_prod_image();
 				_qalert(sprintf(_sp('Please choose a valid %s/%s option.'),
 					$this->prod->SizeLabel, $this->prod->ColorLabel));
 
@@ -731,7 +733,7 @@ class xlsws_product extends xlsws_index {
 
 		if(_xls_get_conf('PRODUCT_ENLARGE_SHOW_LIGHTBOX' , 1))
 			$this->dxImage->doShow($this->prod , $strParameter?$strParameter:false);
-		else {
+        else {
 			if(!$strParameter)
 				return;
 
