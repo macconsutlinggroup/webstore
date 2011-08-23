@@ -49,7 +49,7 @@
 
 			// Fixup Size and Positioning
 			objHandle.style.top = this.offsetTop + "px";
-            if (! qcodo.isBrowser(qcodo.FIREFOX))
+            if (!qcodo.browser.mozilla)
                 objHandle.style.left = this.offsetLeft + "px";
 			//objHandle.style.left = this.offsetLeft + "px";
 			objHandle.style.width = this.offsetWidth + "px";
