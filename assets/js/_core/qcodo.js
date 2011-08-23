@@ -9,9 +9,67 @@
 		// Browser-related functionality
 		////////////////////////////////
 
+            this.browser = (function() {
+                var ua = navigator.userAgent.toLowerCase();
+                var browser = { 
+                    webkit:false, opera:false, ie:false, mozilla:false 
+                };
+
+                var match = /(webkit)[ \/]([\w.]+)/.exec( ua ) ||
+                    /(opera)(?:.*version)?[ \/]([\w.]+)/.exec( ua ) ||
+                    /(msie) ([\w.]+)/.exec( ua ) ||
+                    !/compatible/.test( ua ) && 
+                        /(mozilla)(?:.*? rv:([\w.]+))?/.exec( ua ) || 
+                    [];
+
+                if (match[1]=='msie') match[1] = 'ie';
+                if (match[1]) browser[match[1]] = true;
+
+                browser.version = match[2] || "0";
+
+                browser.platform = { 
+                    mac: /mac/.test(ua),
+                    win: /win/.test(ua),
+                    linux: /linux/.test(ua),
+                    android: /android \d\.\d/.test(ua),
+                    iphoneos: /apple.*mobile.*safari/.test(ua)
+                };
+
+                return browser;
+            })();
+
 			this.isBrowser = function(intBrowserType) {
-				return (intBrowserType & qcodo._intBrowserType);
+                if (intBrowserType & qcodo.IE) { 
+                    if (!qcodo.browser.ie) return false;
+                    return true;
+                }
+
+                if (intBrowserType & qcodo.SAFARI) { 
+                    if (!qcodo.browser.webkit) return false;
+                    return true;
+                }
+
+                if (intBrowserType & qcodo.CHROME) { 
+                    if (!qcodo.browser.webkit) return false;
+                    return true;
+                }
+
+                if (intBrowserType & qcodo.FIREFOX) { 
+                    if (!qcodo.browser.webkit) return false;
+                    return true;
+                }
+
+                if (intBrowserType & qcodo.UNSUPPORTED) {
+                    if (!qcodo.browser.webkit && 
+                        !qcodo.browser.opera &&
+                        !qcodo.browser.ie &&
+                        !qcodo.browser.mozilla) { return true; }
+                    else return false;
+                }
+
+                return (intBrowserType & qcodo._intBrowserType);
 			};
+
 			this.IE = 1;
 			this.IE_6_0 = 2;
 			this.IE_7_0 = 4;

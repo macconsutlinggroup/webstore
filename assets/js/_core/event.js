@@ -40,19 +40,16 @@
 				};
 			};
 
-			if (qcodo.isBrowser(qcodo.IE)) {
-				qcodo.mouse.left = ((objEvent.button & 1) ? true : false);
-				qcodo.mouse.right = ((objEvent.button & 2) ? true : false);
-				qcodo.mouse.middle = ((objEvent.button & 4) ? true : false);
-			} else if (qcodo.isBrowser(qcodo.SAFARI) || qcodo.isBrowser(qcodo.CHROME)) {
-				qcodo.mouse.left = ((objEvent.button && !objEvent.ctrlKey) ? true : false);
-				qcodo.mouse.right = ((objEvent.button && objEvent.ctrlKey) ? true : false);
-				qcodo.mouse.middle = false;
-			} else {
-				qcodo.mouse.left = (objEvent.button == 0);
-				qcodo.mouse.right = (objEvent.button == 2);
-				qcodo.mouse.middle = (objEvent.button == 1);
-			};
+            if (qcodo.browser.ie && (qcodo.browser.version < 9)) {
+                qcodo.mouse.left = (objEvent.button == 1); 
+                qcodo.mouse.right = (objEvent.button == 2); 
+                qcodo.mouse.middle = (objEvent.button == 4); 
+            }
+            else { 
+                qcodo.mouse.left = (objEvent.button == 0); 
+                qcodo.mouse.right = (objEvent.button == 2); 
+                qcodo.mouse.middle = (objEvent.button == 1); 
+              }
 
 			qcodo.key.alt = (objEvent.altKey) ? true : false;
 			qcodo.key.control = (objEvent.ctrlKey) ? true : false;
