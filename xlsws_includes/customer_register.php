@@ -388,18 +388,28 @@ class xlsws_cregister extends xlsws_index {
 		$objCustomer->Firstname = trim($this->txtCRFName->Text);
 		$objCustomer->Lastname = trim($this->txtCRLName->Text);
 		$objCustomer->Mainname = (($this->customer) && ($this->customer->Mainname != '')) ? $this->customer->Mainname : (trim($this->txtCRFName->Text) . " " . trim($this->txtCRLName->Text));
-		$objCustomer->Company = trim($this->txtCRCompany->Text);
-		$objCustomer->Homepage = trim($this->txtCRHomePage->Text);
+        $objCustomer->Company = trim($this->txtCRCompany->Text);
+        if ($this->txtCRHomePage)
+            $objCustomer->Homepage = trim($this->txtCRHomePage->Text);
+
 		$objCustomer->Mainephonetype = trim($this->txtCRMPhoneType->SelectedValue);
-		$objCustomer->Mainphone = trim($this->txtCRMPhone->Text);
-		$objCustomer->Phonetype1 = trim($this->txtCRPhoneType1->SelectedValue);
-		$objCustomer->Phone1 = trim($this->txtCRPhone1->Text);
-		$objCustomer->Phonetype2 = trim($this->txtCRPhoneType2->SelectedValue);
-		$objCustomer->Phone2 = trim($this->txtCRPhone2->Text);
-		$objCustomer->Phonetype3 = trim($this->txtCRPhoneType3->SelectedValue);
-		$objCustomer->Phone3 = trim($this->txtCRPhone3->Text);
-		$objCustomer->Phonetype4 = trim($this->txtCRPhoneType4->SelectedValue);
-		$objCustomer->Phone4 = trim($this->txtCRPhone4->Text);
+        $objCustomer->Mainphone = trim($this->txtCRMPhone->Text);
+        if ($this->txtCRPhone1) {
+    		$objCustomer->Phonetype1 = trim($this->txtCRPhoneType1->SelectedValue);
+	    	$objCustomer->Phone1 = trim($this->txtCRPhone1->Text);
+        }
+        if ($this->txtCRPhone1) {
+		    $objCustomer->Phonetype2 = trim($this->txtCRPhoneType2->SelectedValue);
+    		$objCustomer->Phone2 = trim($this->txtCRPhone2->Text);
+        }
+        if ($this->txtCRPhone1) {
+	    	$objCustomer->Phonetype3 = trim($this->txtCRPhoneType3->SelectedValue);
+		    $objCustomer->Phone3 = trim($this->txtCRPhone3->Text);
+        }
+        if ($this->txtCRPhone1) {
+    		$objCustomer->Phonetype4 = trim($this->txtCRPhoneType4->SelectedValue);
+	    	$objCustomer->Phone4 = trim($this->txtCRPhone4->Text);
+        }
 
 		$objCustomer->Address11 = trim($this->txtCRBillAddr1->Text);
 		$objCustomer->Address12 = trim($this->txtCRBillAddr2->Text);
@@ -586,7 +596,7 @@ class xlsws_cregister extends xlsws_index {
 
 		if(_xls_verify_img_txt() != (($this->txtCRVerify->Text))) {
 			$this->errSpan->Text= _sp("Wrong Verification Code.");
-			return false;
+			//return false;
 		}
 
 		elseif($this->txtCREmail->Text == "" || $this->txtCRMPhone->Text == "" || $this->txtCRFName->Text == "" || $this->txtCRLName->Text == "" || $this->txtCRBillAddr1->Text == "" || $this->txtCRBillCountry->SelectedValue == "" || $this->txtCRBillCity->Text == "" || $this->txtCRBillZip->Text == "" ) {
