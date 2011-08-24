@@ -446,7 +446,7 @@ class xlsws_cregister extends xlsws_index {
 			// remind old password
 			$objCustomer->Password = trim($this->txtCRPass->Text);
 
-			_xls_mail(_xls_mail_name($objCustomer->Mainname , $objCustomer->Email) , _sp("Welcome to ") . _xls_get_conf('STORE_NAME') , _xls_mail_body_from_template(templatenamed('email_customer_register.tpl.php') , array('cust' =>$objCustomer)));
+			_xls_mail($objCustomer->Email, _sp("Welcome to ") . _xls_get_conf('STORE_NAME') , _xls_mail_body_from_template(templatenamed('email_customer_register.tpl.php') , array('cust' =>$objCustomer)));
 		} else
 			$objCustomer->Save();
 
@@ -596,7 +596,7 @@ class xlsws_cregister extends xlsws_index {
 
 		if(_xls_verify_img_txt() != (($this->txtCRVerify->Text))) {
 			$this->errSpan->Text= _sp("Wrong Verification Code.");
-			//return false;
+			return false;
 		}
 
 		elseif($this->txtCREmail->Text == "" || $this->txtCRMPhone->Text == "" || $this->txtCRFName->Text == "" || $this->txtCRLName->Text == "" || $this->txtCRBillAddr1->Text == "" || $this->txtCRBillCountry->SelectedValue == "" || $this->txtCRBillCity->Text == "" || $this->txtCRBillZip->Text == "" ) {
