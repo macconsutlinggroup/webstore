@@ -429,8 +429,8 @@ class Cart extends CartGen {
 		// default, otherwise leave it alone.
 		//
 		if ($this->blnStorePickup && $intTaxStatus) {
-			$objTaxStatus = $objShipProduct->FkTaxStatusId;
-			if ($objTaxStatus->IsNoTax())
+			$objTaxStatus = $objShipProduct->FkTaxStatus;
+			if ($objTaxStatus && $objTaxStatus->IsNoTax())
 				$intTaxStatus = 0;
 		}
 
@@ -949,13 +949,13 @@ class Cart extends CartGen {
 	}
 
 	// Overload GetCartItemArray to provide to use the CartItem manager
-	public function GetCartItemArray() {
+	public function GetCartItemArray($objOptionalClauses = null) {
 		if (CartItem::$Manager) {
 			if (!CartItem::$Manager->HasAssociation($this->Rowid))
 				CartItem::$Manager->AddArray(parent::GetCartItemArray());
 			return CartItem::$Manager->GetByAssociation($this->Rowid);
 		}
-		return parent::GetCartItemArray();
+		return parent::GetCartItemArray($objOptionalClauses);
 	}
 
 	public function __get($strName) {
