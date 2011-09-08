@@ -280,8 +280,9 @@ if(!defined('__DOCROOT__'))
 					$warning_text .= "<tr><td colspan='2'>There are issues with your PHP environment which need to be fixed before you can install WebStore. Please check the chart below for missing libraries on your PHP installation which must be installed/compiled into PHP, and subdirectories which you need to make writeable. Remember to restart Apache if you change any php.ini settings.</td></td>";
 				}
 				$warning_text .= "<tr><td colspan='2'><hr></td></tr>";
+				$curver=_xls_version();
 				foreach ($checkenv as $key=>$value)
-				$warning_text .= "<tr><td>$key</td><td>".(($value=="fail" || $value=="modified") ? "<font color='#cc0000'><b>$value</b></font>" : "$value" )."</td>";
+				$warning_text .= "<tr><td>$key</td><td>".(($value=="pass" || $value==$curver) ? "$value" : "<font color='#cc0000'><b>$value</b></font>" )."</td>";
 				
 				
 					
@@ -1133,18 +1134,22 @@ EOT;
 				$checked=array();
 				$checked['<b>--File Signatures Check--</b>']= "pass";
 				
-				include("includes/installer/signatures.php");
+				include("includes/signatures.php");
 
 
 				$fn=unserialize($signatures);
+				if(!isset($signatures)) $checked['Signature File in /includes']="fail";
 				foreach($fn as $key=>$value) {
+					if(!file_exists($key))
+						$checked[$key] = "MISSING";
+					else {
 				    $hashes=array_reverse(explode(",",$value));
 				    $hashfile=md5_file($key);
 				    if (!in_array($hashfile,$hashes))
 				        $checked[$key] = "modified";
 				    elseif(_xls_version() != $versions[array_search($hashfile,$hashes)] || $complete)
 				        $checked[$key] = $versions[array_search($hashfile,$hashes)];
-				    
+				   } 
 				}         
                 return $checked;
 			}
@@ -1515,6 +1520,7 @@ $sql[]= "INSERT INTO `xlsws_configuration` VALUES (NULL, 'Ignore line breaks in 
 $sql[]= "INSERT INTO `xlsws_configuration` VALUES (NULL, 'Hide price of matrix master product', 'MATRIX_PRICE', '0', 'If you do not want to show the price of your master product in a size/color matrix, turn this option on', 8,9 , NOW(), NOW(), 'BOOL');";
 $sql[]= "INSERT INTO `xlsws_configuration` VALUES (NULL, 'Session storage', 'SESSION_HANDLER', 'DB', 'Store sessions in the database or file system?', 1, 6, NOW(), NOW(), 'STORE_IMAGE_LOCATION');";
 $sql[]= "INSERT into `xlsws_configuration` VALUES (NULL,'Show child products in search results', 'CHILD_SEARCH', '','If you want child products from a size color matrix to show up in search results, enable this option',8,10,NOW(),NOW(),'BOOL');";
+$sql[]= "INSERT INTO `xlsws_configuration` VALUES (NULL, 'Security mode for outbound SMTP',  'EMAIL_SMTP_SECURITY_MODE',  '0',  'Automatic based on SMTP Port, or force security.',  '5',  '8', NOW() , NOW(), 'EMAIL_SMTP_SECURITY_MODE');";
 
 //$sql[]= "INSERT INTO `xlsws_configuration` VALUES (NULL, 'Debug LightSpeed Soap Call', 'DEBUG_LS_SOAP_CALL', '1', 'If selected, all soap calls will be logged in the database. It is advised that you do not enable this unless advised by XSilva', 1, 16, NOW(), NOW(), 'BOOL');";
 				
