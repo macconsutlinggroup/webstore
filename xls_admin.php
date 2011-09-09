@@ -32,6 +32,8 @@
 
 	ob_start(); // These includes may spit content which we need to ignore
 	require_once('includes/prepend.inc.php');
+	include('includes/xlsws/core/XLSGithub.php');
+
 	_xls_lang_init(_xls_get_conf('LANGUAGE_DEFAULT' , 'en'));
 	ob_end_clean();	
 
