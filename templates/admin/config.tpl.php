@@ -74,6 +74,12 @@
 	
 </head>
 <body>
+<?php $ghver = _xls_latest_release(); if(_xls_version()<>$ghver): ?>
+<div style="margin: 10px 2px 2px 2px; padding: 4px; background:  url(<?= adminTemplate('css/images/header.png') ?>); height: 14px;">
+<?php echo "<b>Web Store Alert: Version ".$ghver." has been released. Your current version is "._xls_version().". Please visit lightspeedretail.com for details.</b>"; ?>
+</div>
+<?php endif; ?>
+
 <?php include_once(adminTemplate('pages.tpl.php')); ?>
 
 <?php $this->RenderBegin(); ?>

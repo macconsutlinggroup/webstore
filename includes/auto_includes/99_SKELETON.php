@@ -5,3 +5,5 @@ if (!empty(QApplication::$Database)) {
 
 	}
 }
+
+

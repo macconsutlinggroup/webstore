@@ -889,6 +889,10 @@ function _xls_version() { // LEGACY
 	return XLSWS_VERSION;
 }
 
+function _xls_latest_release() {
+    $ghclass = new Github;
+    return $ghclass->getLatestRelease();
+}
 /**
 * Initialize a new language.
 *
