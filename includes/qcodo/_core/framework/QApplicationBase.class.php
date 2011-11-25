@@ -76,6 +76,7 @@
 		 * @var string PathInfo
 		 */
 		public static $PathInfo;
+		private static $arrPathInfo;
 
 		/**
 		 * Query String after the script URL (if applicable)
@@ -205,12 +206,12 @@
 
 		/**
 		 * Called by QApplication::Initialize() to setup error and exception handling
-		 * to use the Qcodo Error/Exception handler.  Only called for non-CLI calls.
+		 * to use the Qcodo Error/Exception handler.
 		 * @return void
 		 */
 		protected static function InitializeErrorHandling() {
-			set_error_handler('__qcodo_handle_error', error_reporting());
-			set_exception_handler('__qcodo_handle_exception');
+			set_error_handler(array('QErrorHandler', 'HandleError'), error_reporting());
+			set_exception_handler(array('QErrorHandler', 'HandleException'));
 		}
 
 		/**
@@ -313,6 +314,8 @@
 						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::InternetExplorer_7_0;
 					else if (strpos($strUserAgent, 'msie 8.0') !== false)
 						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::InternetExplorer_8_0;
+					else if (strpos($strUserAgent, 'msie 9.0') !== false)
+						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::InternetExplorer_9_0;
 					else
 						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Unsupported;
 
@@ -345,6 +348,8 @@
 						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Chrome_3_0;
 					else if (strpos($strUserAgent, 'chrome/4.') !== false)
 						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Chrome_4_0;
+					else if (strpos($strUserAgent, 'chrome/5.') !== false)
+						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Chrome_5_0;
 					else
 						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Unsupported;
 
@@ -358,6 +363,8 @@
 						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Safari_3_0;
 					else if (strpos($strUserAgent, 'version/4.') !== false)
 						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Safari_4_0;
+					else if (strpos($strUserAgent, 'version/5.') !== false)
+						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Safari_5_0;
 					else
 						QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Unsupported;
 
@@ -368,6 +375,10 @@
 				// MACINTOSH?
 				if (strpos($strUserAgent, 'macintosh') !== false)
 					QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Macintosh;
+
+				// IPHONE?
+				if (strpos($strUserAgent, 'iphone') !== false)
+					QApplication::$BrowserType = QApplication::$BrowserType | QBrowserType::Iphone;
 			}
 		}
 
@@ -384,6 +395,7 @@
 			// Basic Initailization Routines
 			QApplication::InitializeEnvironment();
 			QApplication::InitializeScriptInfo();
+			QApplication::InitializeErrorHandling();
 
 			// Perform Initialization for CLI
 			if (QApplication::$CliMode) {
@@ -391,7 +403,6 @@
 
 			// *OR* Perform Initializations for WebApp
 			} else {
-				QApplication::InitializeErrorHandling();
 				QApplication::InitializeOutputBuffering();
 				QApplication::InitializeServerAddress();
 				QApplication::InitializeRequestUri();
@@ -417,6 +428,18 @@
 			spl_autoload_register(array('QApplication', 'Autoload'));
 		}
 
+		/**
+		 * This is called during the Initialization stage of the Qcodo application -- it will go
+		 * through the /includes/auto_includes directory and find any and all *.inc.php files in there
+		 * and include them one at a time in alphabetical order.
+		 * 
+		 * This will do the search as a convenience for development.
+		 * 
+		 * In production, for performance reasons, it would be advantageous to override this method in QApplication.class.php
+		 * and make calls to require() or require_once() on each file you want to include explicitly, thus alleviating
+		 * the need to process the directory on each and every hit
+		 * @return void
+		 */
 		protected static function InitializeAutoIncludes() {
 			$objDirectory = opendir(__INCLUDES__ . '/auto_includes');
 			$strFileArray = array();
@@ -429,14 +452,21 @@
 			foreach ($strFileArray as $strFile) require($strFile);
 		}
 
+		/**
+		 * Qcodo is placed into the server signature for metrics purposes.  For those that are concerned
+		 * about any potential security risks with placing the Qcodo version information into the server signature,
+		 * you can simply override this method in QApplication.class.php to prevent Qcodo from automatically
+		 * placing itself into the server signature.
+		 * @return void
+		 */
 		protected static function InitializeServerSignature() {
 			header(sprintf('X-Powered-By: PHP/%s; Qcodo/%s', PHP_VERSION, QCODO_VERSION));
 		}
 
 		protected static function InitializeOutputBuffering() {
-			ob_start('__qcodo_ob_callback');
+			ob_start(array('QApplication', 'OutputPage'));
 		}
-		
+
 		protected static function InitializePhpSession() {
 			// Go ahead and start the PHP session if we have set EnableSession to true
 			if (QApplication::$EnableSession) session_start();
@@ -451,12 +481,6 @@
 			// Did we ask for a script to be run?
 			if (!array_key_exists(1, $_SERVER['argv']) ||
 				(substr($_SERVER['argv'][1], 0, 1) == '-')) {
-				$strDefaultPath = __DEVTOOLS_CLI__;
-				$strDefaultPath = str_replace('/html/../', '/', $strDefaultPath);
-				$strDefaultPath = str_replace('/docroot/../', '/', $strDefaultPath);
-				$strDefaultPath = str_replace('/wwwroot/../', '/', $strDefaultPath);
-				$strDefaultPath = str_replace('/www/../', '/', $strDefaultPath);
-
 				print "Qcodo CLI Runner v" . QCODO_VERSION . "\r\n";
 				print "usage: qcodo SCRIPT [SCRIPT-SPECIFIC ARGS]\r\n";
 				print "\r\n";
@@ -469,9 +493,10 @@
 				print "  qcodo-updater  Updates your installed Qcodo framework to a new version\r\n";
 				print "  qpm-download   Download and installs an external QPM package\r\n";
 				print "  qpm-upload     Packages custom code you wrote into a QPM package\r\n";
+				print "  phpunit        Run bundled PHPUnit\r\n";
 				print "\r\n";
 				print "Other custom scripts can be created as well.\r\n";
-				print "See \"" . $strDefaultPath . "/scripts/_README.txt\" for more info";
+				print "See \"" . realpath(__DEVTOOLS_CLI__) . "/scripts/_README.txt\" for more info";
 				print "\r\n";
 				exit(1);
 			}
@@ -510,38 +535,56 @@
 				$strConstantName = sprintf('DB_CONNECTION_%s', $intIndex);
 
 				if (defined($strConstantName)) {
-					// Expected Keys to be Set
-					$strExpectedKeys = array(
-						'adapter', 'server', 'port', 'database',
-						'username', 'password', 'profiling'
-					);
-
 					// Lookup the Serialized Array from the DB_CONFIG constants and unserialize it
 					$strSerialArray = constant($strConstantName);
 					$objConfigArray = unserialize($strSerialArray);
 
-					// Set All Expected Keys
-					foreach ($strExpectedKeys as $strExpectedKey)
-						if (!array_key_exists($strExpectedKey, $objConfigArray))
-							$objConfigArray[$strExpectedKey] = null;
-
-					if (!$objConfigArray['adapter'])
-						throw new Exception('No Adapter Defined for ' . $strConstantName . ': ' . var_export($objConfigArray, true));
-
-					if (!$objConfigArray['server'])
-						throw new Exception('No Server Defined for ' . $strConstantName . ': ' . constant($strConstantName));
-
-					$strDatabaseType = 'Q' . $objConfigArray['adapter'] . 'Database';
-					if (!class_exists($strDatabaseType)) {
-						$strDatabaseAdapter = sprintf('%s/database/%s.class.php', __QCODO_CORE__, $strDatabaseType);
-						if (!file_exists($strDatabaseAdapter))
-							throw new Exception('Database Type is not valid: ' . $objConfigArray['adapter']);
-						require($strDatabaseAdapter);
-					}
-
-					QApplication::$Database[$intIndex] = new $strDatabaseType($intIndex, $objConfigArray);
+					// Use Helper Method to instantiate and store db connection/adapter
+					QApplication::$Database[$intIndex] = self::CreateDatabaseConnection($intIndex, $objConfigArray);
 				}
 			}
+		}
+
+		/**
+		 * Given a ConfigArray, create a QDatabaseBase adapter instance.  Only used internally by InitializeDatabaseConnections.
+		 * @param integer $intIndex
+		 * @param string[] $objConfigArray
+		 * @return QDatabaseBase
+		 */
+		protected static function CreateDatabaseConnection($intIndex, $objConfigArray) {
+			// Expected Keys to be Set
+			$strExpectedKeys = array(
+				'adapter', 'server', 'port', 'database',
+				'username', 'password', 'profiling'
+			);
+
+			// Set All Expected Keys
+			foreach ($strExpectedKeys as $strExpectedKey)
+				if (!array_key_exists($strExpectedKey, $objConfigArray))
+					$objConfigArray[$strExpectedKey] = null;
+
+			if (!$objConfigArray['adapter'])
+				throw new Exception('No Adapter Defined for ' . $strConstantName . ': ' . var_export($objConfigArray, true));
+
+			if (!$objConfigArray['server'])
+				throw new Exception('No Server Defined for ' . $strConstantName . ': ' . constant($strConstantName));
+
+			$strDatabaseType = 'Q' . $objConfigArray['adapter'] . 'Database';
+			if (!class_exists($strDatabaseType)) {
+				$strDatabaseAdapter = sprintf('%s/database/%s.class.php', __QCODO_CORE__, $strDatabaseType);
+				if (!file_exists($strDatabaseAdapter))
+					throw new Exception('Database Type is not valid: ' . $objConfigArray['adapter']);
+				require($strDatabaseAdapter);
+			}
+
+			$objToReturn = new $strDatabaseType($intIndex, $objConfigArray);
+
+			// Add Journaling (if applicable)
+			if (array_key_exists('journaling', $objConfigArray)) {
+				$objToReturn->JournalingDatabase = self::CreateDatabaseConnection($intIndex * 1000, $objConfigArray['journaling']);
+			}
+
+			return $objToReturn;
 		}
 
 		/**
@@ -549,22 +592,20 @@
 		 *
 		 * @return boolean whether or not a class was found / included
 		 */
+		public static function Autoload($strClassName) {
+			if (array_key_exists(strtolower($strClassName), QApplication::$ClassFile)) {
+				require(QApplication::$ClassFile[strtolower($strClassName)]);
+				return true;
+			} else if (file_exists($strFilePath = sprintf('%s/%s.class.php', __INCLUDES__, $strClassName))) {
+				require($strFilePath);
+				return true;
+			} else if (file_exists($strFilePath = sprintf('%s/qform/%s.class.php', __QCODO__, $strClassName))) {
+				require($strFilePath);
+				return true;
+			}
 
-
-                public static function Autoload($strClassName) {
-                        if (array_key_exists(strtolower($strClassName), QApplication::$ClassFile)) {
-                                require(QApplication::$ClassFile[strtolower($strClassName)]);
-                                return true;
-                        } else if (file_exists($strFilePath = sprintf('%s/%s.class.php', __INCLUDES__, $strClassName))) {
-                                require($strFilePath);
-                                return true;
-                        } else if (file_exists($strFilePath = sprintf('%s/qform/%s.class.php', __QCODO__, $strClassName))) {
-                                require($strFilePath);
-                                return true;
-                        }
-
-                        return false;
-                }
+			return false;
+		}
 
 		/**
 		 * Temprorarily overrides the default error handling mechanism.  Remember to call
@@ -574,15 +615,15 @@
 		 * @param integer $intLevel if a error handler function is defined, then the new error reporting level (if any)
 		 */
 		public static function SetErrorHandler($strName, $intLevel = null) {
-			if (!is_null(QApplicationBase::$intStoredErrorLevel))
+			if (!is_null(QApplication::$intStoredErrorLevel))
 				throw new QCallerException('Error handler is already currently overridden.  Cannot override twice.  Call RestoreErrorHandler before calling SetErrorHandler again.');
 			if (!$strName) {
 				// No Error Handling is wanted -- simulate a "On Error, Resume" type of functionality
-				set_error_handler('__qcodo_handle_error', 0);
-				QApplicationBase::$intStoredErrorLevel = error_reporting(0);
+				set_error_handler(array('QErrorHandler', 'HandleError'), 0);
+				QApplication::$intStoredErrorLevel = error_reporting(0);
 			} else {
 				set_error_handler($strName, $intLevel);
-				QApplicationBase::$intStoredErrorLevel = -1;
+				QApplication::$intStoredErrorLevel = -1;
 			}
 		}
 
@@ -590,14 +631,14 @@
 		 * Restores the temporarily overridden default error handling mechanism back to the default.
 		 */
 		public static function RestoreErrorHandler() {
-			if (is_null(QApplicationBase::$intStoredErrorLevel))
+			if (is_null(QApplication::$intStoredErrorLevel))
 				throw new QCallerException('Error handler is not currently overridden.  Cannot reset something that was never overridden.');
-			if (QApplicationBase::$intStoredErrorLevel != -1)
-				error_reporting(QApplicationBase::$intStoredErrorLevel);
+			if (QApplication::$intStoredErrorLevel != -1)
+				error_reporting(QApplication::$intStoredErrorLevel);
 			restore_error_handler();
-			QApplicationBase::$intStoredErrorLevel = null;
+			QApplication::$intStoredErrorLevel = null;
 		}
-		private static $intStoredErrorLevel = null;
+		protected static $intStoredErrorLevel = null;
 
 		/**
 		 * Same as mkdir but correctly implements directory recursion.
@@ -616,7 +657,7 @@
 				return true;
 
 			// Check to make sure the parent(s) exist, or create if not
-			if (!QApplicationBase::MakeDirectory(dirname($strPath), $intMode))
+			if (!QApplication::MakeDirectory(dirname($strPath), $intMode))
 				return false;
 
 			// Create the current node/directory, and return its result
@@ -643,7 +684,9 @@
 		 */
 		public static function Redirect($strLocation) {
 			// Clear the output buffer (if any)
-			ob_clean();
+			while (count(ob_list_handlers())) {
+				ob_end_clean();
+			}
 
 			if ((QApplication::$RequestMode == QRequestMode::Ajax) ||
 				(array_key_exists('Qform__FormCallType', $_POST) &&
@@ -722,11 +765,22 @@
 		public static function GenerateQueryString() {
 			if (count($_GET)) {
 				$strToReturn = '';
-				foreach ($_GET as $strKey => $strValue)
-					$strToReturn .= '&' . urlencode($strKey) . '=' . urlencode($strValue);
+				foreach ($_GET as $strKey => $mixValue)
+					$strToReturn .= QApplication::GenerateQueryStringHelper(urlencode($strKey), $mixValue);
 				return '?' . substr($strToReturn, 1);
 			} else
 				return '';
+		}
+
+		protected static function GenerateQueryStringHelper($strKey, $mixValue) {
+			if (is_array($mixValue)) {
+				$strToReturn = null;
+				foreach ($mixValue as $strSubKey => $mixValue) {
+					$strToReturn .= QApplication::GenerateQueryStringHelper($strKey . '[' . $strSubKey . ']', $mixValue);
+				}
+				return $strToReturn;
+			} else
+				return '&' . $strKey . '=' . urlencode($mixValue);
 		}
 
 		/**
@@ -746,7 +800,7 @@
 				return;
 
 			// Are we localhost?
-			if ($_SERVER['REMOTE_ADDR'] == '127.0.0.1')
+			if (substr($_SERVER['REMOTE_ADDR'],0,4) == '127.' || $_SERVER['REMOTE_ADDR'] == '::1')
 				return;
 
 			// Are we the correct IP?
@@ -765,30 +819,41 @@
 
 		/**
 		 * Gets the value of the PathInfo item at index $intIndex.  Will return NULL if it doesn't exist.
+		 * If no $intIndex is given will return an array with PathInfo contents.
 		 *
 		 * The way PathInfo index is determined is, for example, given a URL '/folder/page.php/id/15/blue',
 		 * QApplication::PathInfo(0) will return 'id'
 		 * QApplication::PathInfo(1) will return '15'
 		 * QApplication::PathInfo(2) will return 'blue'
 		 *
-		 * @return void
+		 * @return mixed
 		 */
-		public static function PathInfo($intIndex) {
-			// TODO: Cache PathInfo
-			$strPathInfo = QApplication::$PathInfo;
-			
-			// Remove Trailing '/'
-			if (QString::FirstCharacter($strPathInfo) == '/')			
-				$strPathInfo = substr($strPathInfo, 1);
-			
-			$strPathInfoArray = explode('/', $strPathInfo);
+		public static function PathInfo($intIndex = null) {
+			// Lookup PathInfoArray from cache, or create it into cache if it doesn't yet exist
+			if (!isset(self::$arrPathInfo)) {
+				$strPathInfo = QApplication::$PathInfo;
+				self::$arrPathInfo = array();
 
-			if (array_key_exists($intIndex, $strPathInfoArray))
-				return $strPathInfoArray[$intIndex];
+				if ($strPathInfo != '' ) {
+					if ($strPathInfo == '/' )
+						self::$arrPathInfo[0] = '';
+					else {
+						// Remove Trailing '/'
+						if (QString::FirstCharacter($strPathInfo) == '/')
+							$strPathInfo = substr($strPathInfo, 1);
+						self::$arrPathInfo = explode('/', $strPathInfo);
+					}
+				}
+			}
+
+			if ($intIndex === null)
+				return self::$arrPathInfo;
+			elseif (array_key_exists($intIndex, self::$arrPathInfo))
+				return self::$arrPathInfo[$intIndex];
 			else
 				return null;
 		}
-		
+
 		public static $AlertMessageArray = array();
 		public static $JavaScriptArray = array();
 		public static $JavaScriptArrayHighPriority = array();
@@ -827,7 +892,7 @@
 					// Update Cache-Control setting
 					header('Cache-Control: ' . QApplication::$CacheControl);
 
-					$strScript = QApplicationBase::RenderJavaScript(false);
+					$strScript = QApplication::RenderJavaScript(false);
 
 					if ($strScript)
 						return sprintf('%s<script type="text/javascript">%s</script>', $strBuffer, $strScript);
@@ -903,6 +968,41 @@
 		}
 
 		/**
+		 * This function displays helpful development info like queries sent to database and memory usage.
+		 * By default it shows only if database profiling is enabled in any configured database connections.
+		 * 
+		 * If forced to show when profiling is disabled you can monitor qcodo memory usage more accurately,
+		 * as collecting database profiling information tends to noticeable bigger memory consumption.
+		 * 
+		 * @param boolean $blnForceDisplay optional parameter, set true to always display info even if DB profiling is disabled
+		 * @return void
+		 */
+		public static function DisplayProfilingInfo($blnForceDisplay = false) {
+			if (QDatabaseBase::IsAnyDatabaseProfilingEnabled() || $blnForceDisplay) {
+				print('<br clear="all"/><div style="padding: 5px; text-align: left; margin: 1em auto; border: 1px solid #888888; width: 800px;">');
+
+				// Output DB Profiling Data
+				foreach (QApplication::$Database as $objDb) {
+					if($objDb->EnableProfiling == true) $objDb->OutputProfiling();
+				}
+
+				// Output runtime statistics
+				if (function_exists('memory_get_peak_usage'))
+					print('memory_get_peak_usage: ' . QString::GetByteSize(memory_get_peak_usage(true)) . ' / ' . ini_get('memory_limit') . '<br/>');
+				print('max_execution_time: ' . ini_get('max_execution_time') . '&nbsp;s<br/>');
+				print('max_input_time: ' . ini_get('max_input_time') . '&nbsp;s<br/>');
+				print('upload_max_filesize: ' . ini_get('upload_max_filesize') . '<br/>');
+
+				// Output any other PHPINI issues
+				if (ini_get('safe_mode')) print('<font color="red">safe_mode need to be disabled</font><br/>');
+				if (ini_get('magic_quotes_gpc')) print('<font color="red">magic_quotes_gpc need to be disabled</font><br/>');
+				if (ini_get('magic_quotes_runtime')) print('<font color="red">magic_quotes_runtime need to be disabled</font><br/>');
+
+				print('</div>');
+			}
+		}
+
+		/**
 		 * For development purposes, this static method outputs the QcodoInfo page
 		 * @return void
 		 */
@@ -936,9 +1036,17 @@
 			printf('<li>QApplication::$ServerAddress = "%s"</li>', QApplication::$ServerAddress);
 
 			if (QApplication::$Database) foreach (QApplication::$Database as $intKey => $objObject) {
-				printf('<li>QApplication::$Database[%s] = %s</li>', 
-					$intKey,
-					var_export(unserialize(constant('DB_CONNECTION_' . $intKey)), true));
+				$arrDb = unserialize(constant('DB_CONNECTION_' . $intKey));
+
+				// Don't display database password
+				$arrDb['password'] = '********';
+
+				// Don't display linked Journaling database password (if applicable)
+				if (array_key_exists('journaling', $arrDb)) {
+					$arrDb['journaling']['password'] = '********';
+				}
+
+				printf('<li>QApplication::$Database[%s] = %s</li>', $intKey, var_export($arrDb, true));
 			}
 			_p('</ul></div>', false);
 		}
@@ -954,26 +1062,31 @@
 		const InternetExplorer_6_0 = 2;
 		const InternetExplorer_7_0 = 4;
 		const InternetExplorer_8_0 = 8;
+		const InternetExplorer_9_0 = 16;
 		
-		const Firefox = 16;
-		const Firefox_1_0 = 32;
-		const Firefox_1_5 = 64;
-		const Firefox_2_0 = 128;
-		const Firefox_3_0 = 256;
-		const Firefox_3_5 = 512;
+		const Firefox = 32;
+		const Firefox_1_0 = 64;
+		const Firefox_1_5 = 128;
+		const Firefox_2_0 = 256;
+		const Firefox_3_0 = 512;
+		const Firefox_3_5 = 1024;
+		const Firefox_4   = 2048;
 		
-		const Safari = 1024;
-		const Safari_2_0 = 2048;
-		const Safari_3_0 = 4096;
-		const Safari_4_0 = 8192;
+		const Safari = 4096;
+		const Safari_2_0 = 8192;
+		const Safari_3_0 = 16384;
+		const Safari_4_0 = 32768;
+		const Safari_5_0 = 65536;
 		
-		const Chrome = 16384;
-		const Chrome_2_0 = 32768;
-		const Chrome_3_0 = 65536;
-		const Chrome_4_0 = 131072;
+		const Chrome     = 131072;
+		const Chrome_2_0 = 262144;
+		const Chrome_3_0 = 524288;
+		const Chrome_4_0 = 1048576;
+		const Chrome_5_0 = 2097152;
 
-		const Macintosh = 262144;
+		const Macintosh = 4194304;
+		const Iphone = 8388608;
 
-		const Unsupported = 524288;
+		const Unsupported = 16777216;
 	}
 ?>

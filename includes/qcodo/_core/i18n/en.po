@@ -1,7 +1,30 @@
 # Qcodo Distributed Language File
 # for English (default)
 
+#qcodo_info
+MsgId "Start Page"
+MsgStr "Start Page"
 
+MsgId "It worked!"
+MsgStr "It worked!"
+
+MsgId "If you are seeing this, then it means that the framework has been successfully installed."
+MsgStr "If you are seeing this, then it means that the framework has been successfully installed."
+
+MsgId "Make sure your database connection properties are up to date, and then you can add tables to your database.  To codegen, you will want to run the codegen using the qcodo codegen CLI tool from the command-line:"
+MsgStr "Make sure your database connection properties are up to date, and then you can add tables to your database.  To codegen, you will want to run the codegen using the qcodo codegen CLI tool from the command-line:"
+
+MsgId "After codegenning, you can use either of the following tools to view the "generated" draft pages of your database application:"
+MsgStr "After codegenning, you can use either of the following tools to view the "generated" draft pages of your database application:"
+
+MsgId "to view the generated Form Drafts of your database"
+MsgStr "to view the generated Form Drafts of your database"
+
+MsgId "to view the generated Panel Drafts "dashboard" of your database"
+MsgStr "to view the generated Panel Drafts "dashboard" of your database"
+
+MsgId "For more information, please go to the Qcodo website at:"
+MsgStr "For more information, please go to the Qcodo website at:"
 
 # For QTextBoxBase controls
 MsgId "%s is required"
@@ -15,6 +38,12 @@ MsgStr "%s must have at least %s characters"
 
 MsgId "Must have at least %s characters"
 MsgStr "Must have at least %s characters"
+
+MsgId "%s must have at most %s characters"
+MsgStr "%s must have at most %s characters"
+
+MsgId "Must have at most %s characters"
+MsgStr "Must have at most %s characters"
 
 
 # For QWriteBox controls
@@ -58,6 +87,16 @@ MsgId "Value must be greater than %s"
 MsgStr "Value must be greater than %s"
 
 
+# For QEmailTextbox control
+MsgId "Invalid e-mail address"
+MsgStr "Invalid e-mail address"
+
+
+# For QDateTimeTextBox
+MsgId "For example, \"Mar 20, 4:30pm\" or \"Mar 20\""
+MsgStr "For example, \"Mar 20, 4:30pm\" or \"Mar 20\""
+
+
 # For QDataGrid controls
 MsgId "<b>Results:</b>&nbsp;Viewing&nbsp;%s&nbsp;%s-%s&nbsp;of&nbsp;%s."
 MsgStr "<b>Results:</b>&nbsp;Viewing&nbsp;%s&nbsp;%s-%s&nbsp;of&nbsp;%s."
@@ -79,6 +118,14 @@ MsgId "Next"
 MsgStr "Next"
 
 
+# For meta DataGrids
+MsgId "true"
+MsgStr "true"
+
+MsgId "false"
+MsgStr "false"
+
+
 # For the List FormDraft Include template
 MsgId "List All"
 MsgStr "List All"
@@ -88,6 +135,15 @@ MsgStr "Create a New"
 
 MsgId "Go to \"Form Drafts\""
 MsgStr "Go to \"Form Drafts\""
+
+MsgId "Go to \"Panel Drafts\""
+MsgStr "Go to \"Panel Drafts\""
+
+MsgId "Form Drafts"
+MsgStr "Form Drafts"
+
+MsgId "Panel Drafts"
+MsgStr "Panel Drafts"
 
 
 # For the Edit FormBase class template
@@ -106,8 +162,8 @@ MsgStr "Cancel"
 MsgId "Delete"
 MsgStr "Delete"
 
-MsgId "Are you SURE you want to DELETE this %s?"
-MsgStr "Are you SURE you want to DELETE this %s?"
+MsgId "Are you SURE you want to DELETE this"
+MsgStr "Are you SURE you want to DELETE this"
 
 
 # For the form_drafts/index.php page
@@ -119,3 +175,114 @@ MsgStr "View List"
 
 MsgId "Create New"
 MsgStr "Create New"
+
+MsgId "Go to Dashboard"
+MsgStr "Go to Dashboard"
+
+
+# For form_drafts/dashboard/index.php page
+MsgId "Select a Class to View/Edit"
+MsgStr "Select a Class to View/Edit"
+
+MsgId "AJAX Dashboard"
+MsgStr "AJAX Dashboard"
+
+
+#For the QDateTime class and QDateTimePicker control
+
+MsgId "Invalid Date"
+MsgStr "Invalid Date"
+
+msgid "Jan"
+msgstr "Jan"
+msgid "January"
+msgstr "January"
+
+msgid "Feb"
+msgstr "Feb"
+msgid "February"
+msgstr "February"
+
+msgid "Mar"
+msgstr "Mar"
+msgid "March"
+msgstr "March"
+
+msgid "Apr"
+msgstr "Apr"
+msgid "April"
+msgstr "April"
+
+msgid "May"
+msgstr "May"
+
+msgid "Jun"
+msgstr "Jun"
+msgid "June"
+msgstr "June"
+
+msgid "Jul"
+msgstr "Jul"
+msgid "July"
+msgstr "July"
+
+msgid "Aug"
+msgstr "Aug"
+msgid "August"
+msgstr "August"
+
+msgid "Sep"
+msgstr "Sep"
+msgid "September"
+msgstr "September"
+
+msgid "Oct"
+msgstr "Oct"
+msgid "October"
+msgstr "October"
+
+msgid "Nov"
+msgstr "Nov"
+msgid "November"
+msgstr "November"
+
+msgid "Dec"
+msgstr "Dec"
+msgid "December"
+msgstr "December"
+
+
+msgid "Mon"
+msgstr "Mon"
+msgid "Monday"
+msgstr "Monday"
+
+msgid "Tue"
+msgstr "Tue"
+msgid "Tuesday"
+msgstr "Tuesday"
+
+msgid "Wed"
+msgstr "Wed"
+msgid "Wednesday"
+msgstr "Wednesday"
+
+msgid "Thu"
+msgstr "Thu"
+msgid "Thursday"
+msgstr "Thursday"
+
+msgid "Fri"
+msgstr "Fri"
+msgid "Friday"
+msgstr "Friday"
+
+msgid "Sat"
+msgstr "Sat"
+msgid "Saturday"
+msgstr "Saturday"
+
+msgid "Sun"
+msgstr "Sun"
+msgid "Sunday"
+msgstr "Sunday"

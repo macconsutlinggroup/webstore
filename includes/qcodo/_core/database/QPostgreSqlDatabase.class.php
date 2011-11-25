@@ -267,6 +267,7 @@
 		
 		public function Close() {
 			pg_close($this->objPgSql);
+			$this->blnConnectedFlag = false;
 		}
 		
 		public function TransactionBegin() {
@@ -510,7 +511,7 @@
 						} else {
 							return ($this->strColumnArray[$strColumnName]) ? true : false;
 						}
-						
+
 					case QDatabaseFieldType::Blob:
 					case QDatabaseFieldType::Char:
 					case QDatabaseFieldType::VarChar:
@@ -518,8 +519,10 @@
 
 					case QDatabaseFieldType::Date:
 					case QDatabaseFieldType::DateTime:
-					case QDatabaseFieldType::Time:
 						return new QDateTime($this->strColumnArray[$strColumnName]);
+
+					case QDatabaseFieldType::Time:
+						return QDateTime::FromTimeOnly($this->strColumnArray[$strColumnName]);
 
 					case QDatabaseFieldType::Float:
 						return QType::Cast($this->strColumnArray[$strColumnName], QType::Float);

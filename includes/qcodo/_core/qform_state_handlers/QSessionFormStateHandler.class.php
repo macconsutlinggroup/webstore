@@ -44,43 +44,6 @@
 		}
 
 		public static function Load($strPostDataState) {
-			global $_SESSION;
-			//error_log("OENTUHOENTUH QSessStateHandlLoad:called ");
-			// Pull Out intStateIndex
-			if (!is_null(QForm::$EncryptionKey)) {
-				//error_log("OENTUHOENTUH QSessStateHandlLoad: have encrypt key...");
-				// Use QCryptography to Decrypt
-				$objCrypto = new QCryptography(QForm::$EncryptionKey, true);
-				$intStateIndex = $objCrypto->Decrypt($strPostDataState);
-			} else {
-
-				//error_log("OENTUHOENTUH QSessStateHandlLoad: no key, play raw");
-				$intStateIndex = $strPostDataState;
-			}
-
-			// Pull FormState from Session
-			// NOTE: if gzcompress is used, we are restoring the *BINARY* data stream of the compressed formstate
-			// In theory, this SHOULD work.  But if there is a webserver/os/php version that doesn't like
-			// binary session streams, you can first base64_decode before restoring from session (see note above).
-			if (array_key_exists('qform_' . $intStateIndex, $_SESSION)) {
-				$strSerializedForm = $_SESSION['qform_' . $intStateIndex];
-
-				//error_log("OENTUHOENTUH QSessStateHandlLoad: form is $strSerializedForm");
-				// Uncompress (if available)
-				if (function_exists('gzcompress'))
-					$strSerializedForm = gzuncompress($strSerializedForm);
-
-				//error_log("OENTUHOENTUH QSessStateHandlLoad: $strSerializedForm");
-				return $strSerializedForm;
-			} else {
-				//error_log("OENTUHOENTUH QSessStateHandlLoad: no such session var " . 'qform_' . $intStateIndex);
-				//error_log("NOTNOTNOTONTO SESSION is " . var_export($_SESSION, TRUE));
-				return null;
-			}
-		}
-
-		public static function Load2($strPostDataState) {
-			global $_SESSION;
 			// Pull Out intStateIndex
 			if (!is_null(QForm::$EncryptionKey)) {
 				// Use QCryptography to Decrypt

@@ -9,7 +9,7 @@
 	 * under the terms of The MIT License.  More information can be found at
 	 * http://www.opensource.org/licenses/mit-license.php
 	 * 
-	 * Copyright (c) 2001 - 2009, Quasidea Development, LLC
+	 * Copyright (c) 2001 - 2011, Quasidea Development, LLC
 	 * 
 	 * Permission is hereby granted, free of charge, to any person obtaining a copy of
 	 * this software and associated documentation files (the "Software"), to deal in
@@ -31,7 +31,14 @@
 	 */
 
 	// Versioning Information
-	define('QCODO_VERSION', '0.4.8');
+	define('QCODO_VERSION', '0.4.22');
+
+	// PHP Minimum Version Supported
+	define('QCODO_PHP_MIN_VERSION', '5.1.2');
+
+	// PHP Minimum Version Check
+	if (version_compare(PHP_VERSION, QCODO_PHP_MIN_VERSION, '<'))
+		exit(sprintf('Error: Qcodo requires PHP %s or later (installed version is %s)', QCODO_PHP_MIN_VERSION, PHP_VERSION));
 
 	// Preload Required Framework Classes
 	require(__QCODO_CORE__ . '/framework/QBaseClass.class.php');
@@ -45,11 +52,11 @@
 
 	// Load the User-defined QApplication class (check to see if it exists, first)
 	if (!file_exists(__INCLUDES__ . '/QApplication.class.php'))
-		exit('error: QApplication.class.php missing from includes/ directory; set one up by copying includes/qcodo/_core/QApplication.class.php-dist to your includes/ directory');
+		exit('Error: QApplication.class.php missing from includes/ directory; set one up by copying includes/qcodo/_core/QApplication.class.php-dist to your includes/ directory');
 	require(__INCLUDES__ . '/QApplication.class.php');
 
 	// Load the Core Database Class
-	require(__QCODO_CORE__ . '/framework/QDatabaseBase.class.php');
+	require(__QCODO_CORE__ . '/framework/QDatabaseBase.class.php');        
 
 	// Define Other Classes to be Preloaded on QApplication::Initialize()
 	QApplicationBase::$PreloadedClassFile['qdatetime'] = (version_compare(PHP_VERSION, '5.2.0', '<')) ? (__QCODO_CORE__ . '/framework/QDateTime.legacy.class.php') : (__QCODO_CORE__ . '/framework/QDateTime.class.php');
@@ -88,8 +95,10 @@
 	QApplicationBase::$ClassFile['qlexer'] = __QCODO_CORE__ . '/framework/QLexer.class.php';
 	QApplicationBase::$ClassFile['qregex'] = __QCODO_CORE__ . '/framework/QRegex.class.php';
 	QApplicationBase::$ClassFile['qcliparameterprocessor'] = __QCODO_CORE__ . '/framework/QCliParameterProcessor.class.php';
+	QApplicationBase::$ClassFile['qlog'] = __QCODO_CORE__ . '/framework/QLog.class.php';
 
 	QApplicationBase::$ClassFile['qcodegen'] = __QCODO__ . '/codegen/QCodeGen.class.php';
+	QApplicationBase::$ClassFile['qdatagen'] = __QCODO_CORE__ . '/framework/QDataGen.class.php';
 
 	QApplicationBase::$ClassFile['qpackagemanager'] = __QCODO_CORE__ . '/framework/QPackageManager.class.php';
 	QApplicationBase::$ClassFile['qpackagemanagerdownload'] = __QCODO_CORE__ . '/framework/QPackageManagerDownload.class.php';
@@ -104,7 +113,8 @@
 
 	QApplicationBase::$ClassFile['qcalendar'] = __QCODO_CORE__ . '/qform/QCalendar.class.php';
 	QApplicationBase::$ClassFile['qcalendarpopup'] = __QCODO_CORE__ . '/qform/QCalendarPopup.class.php';
-	QApplicationBase::$ClassFile['qdatetimepicker'] = __QCODO_CORE__ . '/qform/QDateTimePicker.class.php';
+	QApplicationBase::$ClassFile['qdatetimepicker'] = __QCODO__ . '/qform/QDateTimePicker.class.php';
+	QApplicationBase::$ClassFile['qdatetimepickerbase'] = __QCODO_CORE__ . '/qform/QDateTimePickerBase.class.php';
 	QApplicationBase::$ClassFile['qdatetimetextbox'] = __QCODO_CORE__ . '/qform/QDateTimeTextBox.class.php';
 
 	QApplicationBase::$ClassFile['qcheckbox'] = __QCODO_CORE__ . '/qform/QCheckBox.class.php';
@@ -127,6 +137,7 @@
 	QApplicationBase::$ClassFile['qfileasset'] = __QCODO__ . '/qform/QFileAsset.class.php';
 	QApplicationBase::$ClassFile['qfileassetbase'] = __QCODO_CORE__ . '/qform/QFileAssetBase.class.php';
 	QApplicationBase::$ClassFile['qfileassetdialog'] = __QCODO_CORE__ . '/qform/QFileAssetDialog.class.php';
+	QApplicationBase::$ClassFile['qfileuploader'] = __QCODO_CORE__ . '/qform/QFileUploader.class.php';
 
 	QApplicationBase::$ClassFile['qcontrollabel'] = __QCODO_CORE__ . '/qform/QControlLabel.class.php';
 
@@ -151,6 +162,7 @@
 	QApplicationBase::$ClassFile['qfloattextbox'] = __QCODO_CORE__ . '/qform/QFloatTextBox.class.php';
 	QApplicationBase::$ClassFile['qintegertextbox'] = __QCODO_CORE__ . '/qform/QIntegerTextBox.class.php';
 	QApplicationBase::$ClassFile['qwritebox'] = __QCODO_CORE__ . '/qform/QWriteBox.class.php';
+	QApplicationBase::$ClassFile['qemailtextbox'] = __QCODO_CORE__ . '/qform/QEmailTextBox.class.php';
 
 	QApplicationBase::$ClassFile['qpaginatedcontrol'] = __QCODO_CORE__ . '/qform/QPaginatedControl.class.php';
 	QApplicationBase::$ClassFile['qpaginatorbase'] = __QCODO_CORE__ . '/qform/QPaginatorBase.class.php';
@@ -166,6 +178,8 @@
 	QApplicationBase::$ClassFile['qwaiticon'] = __QCODO_CORE__ . '/qform/QWaitIcon.class.php';
 	QApplicationBase::$ClassFile['qcontrolgrouping'] = __QCODO_CORE__ . '/qform/QControlGrouping.class.php';
 	QApplicationBase::$ClassFile['qdropzonegrouping'] = __QCODO_CORE__ . '/qform/QDropZoneGrouping.class.php';
+
+	QApplicationBase::$ClassFile['qpdodatabase'] = __QCODO_CORE__ . '/database/QPdoDatabase.class.php';
 
 	// Finally, load in any generated classpaths or type-based classpaths constants files
 	if (__DATAGEN_CLASSES__) {

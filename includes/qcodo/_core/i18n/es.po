@@ -1,6 +1,6 @@
 # Qcodo Distributed Language File
 # for Spanish (Generic)
-# Contributed by Nino Dafonte <nino.dafonte@gmail.com>
+# Contributed by Nino Dafonte <nino.dafonte@gmail.com> and marcosdsanchez @ thinkclear dot com dot ar
 
 
 # For QTextBoxBase controls
@@ -10,22 +10,33 @@ MsgStr "%s es obligatorio"
 MsgId "Required"
 MsgStr "Obligatorio"
 
+MsgId "%s must have at least %s characters"
+MsgStr "%s debe tener como mínimo %s caracteres"
+
+MsgId "Must have at least %s characters"
+MsgStr "Debe tener como mínimo %s caracteres"
+
+MsgId "%s debe tener como máximo %s caracteres"
+MsgStr "%s debe tener como máximo %s caracteres"
+
+MsgId "Debe tener como máximo %s caracteres"
+MsgStr "Debe tener como máximo %s caracteres"
 
 # For QWriteBox controls
 MsgId ""
 "Tags &lt;b&gt; &lt;u&gt; &lt;i&gt; &lt;br&gt; &lt;code&gt; and &lt;http://...&gt; are allowed.  "
 "Use ** at the beginning of any line for a bulleted list."
 MsgStr ""
-"Etiquetas &lt;b&gt; &lt;u&gt; &lt;i&gt; &lt;br&gt; &lt;code&gt; y &lt;http://...&gt; est�n permitidas.  "
+"Etiquetas &lt;b&gt; &lt;u&gt; &lt;i&gt; &lt;br&gt; &lt;code&gt; y &lt;http://...&gt; están permitidas.  "
 "Use ** al comienzo de cada linea para una lista por puntos."
 
 
 # For QPaginatedControl controls
 MsgId "item"
-MsgStr "art�culo"
+MsgStr "artículo"
 
 MsgId "items"
-MsgStr "art�culos"
+MsgStr "artículos"
 
 
 # For QListBox and QCalendar controls
@@ -40,10 +51,10 @@ MsgStr "- Seleccione Uno -"
 
 # For QIntegerTextBox and QFloatTextBox controls
 MsgId "Invalid Integer"
-MsgStr "N&uacute;mero entero no v&aacute;lido"
+MsgStr "Número entero no válido"
 
 MsgId "Invalid Float"
-MsgStr "NN&uacute;meromero decimal no v&aacute;lido"
+MsgStr "Número decimal no válido"
 
 MsgId "Value must be less than %s"
 MsgStr "El valor debe ser menor de %s"
@@ -51,6 +62,13 @@ MsgStr "El valor debe ser menor de %s"
 MsgId "Value must be greater than %s"
 MsgStr "El valor debe ser mayor de %s"
 
+# For QEmailTextbox control
+MsgId "Invalid e-mail address"
+MsgStr "Dirección de correo electrónico inválida"
+
+# For QDateTimeTextBox
+MsgId "For example, \"Mar 20, 4:30pm\" or \"Mar 20\""
+MsgStr "Por ejemplo, \"Mar 20, 4:30pm\" o \"Mar 20\""
 
 # For QDataGrid controls
 MsgId "<b>Results:</b>&nbsp;Viewing&nbsp;%s&nbsp;%s-%s&nbsp;of&nbsp;%s."
@@ -83,6 +101,31 @@ MsgStr "Crear uno Nuevo"
 MsgId "Go to \"Form Drafts\""
 MsgStr "Ir a \"Formularios Modelo\""
 
+# For meta DataGrids
+MsgId "true"
+MsgStr "verdadero"
+
+MsgId "false"
+MsgStr "falso"
+
+# For the List FormDraft Include template
+MsgId "List All"
+MsgStr "Listar Todos"
+
+MsgId "Create a New"
+MsgStr "Crear un Nuevo"
+
+MsgId "Go to \"Form Drafts\""
+MsgStr "Ir a \"Borradores de Formularios\""
+
+MsgId "Go to \"Panel Drafts\""
+MsgStr "Ir a \"Borradores de Panel\""
+
+MsgId "Form Drafts"
+MsgStr "Borradores de Formularios"
+
+MsgId "Panel Drafts"
+MsgStr "Borradores de Paneles"
 
 # For the Edit FormBase class template
 MsgId "Create"
@@ -100,16 +143,120 @@ MsgStr "Cancelar"
 MsgId "Delete"
 MsgStr "Borrar"
 
-MsgId "Are you SURE you want to DELETE this %s?"
-MsgStr "�Est� SEGURO de querer BORRAR este %s?"
+MsgId "Are you SURE you want to DELETE this"
+MsgStr "¿Está SEGURO de querer BORRAR este"
 
 
 # For the form_drafts/index.php page
 MsgId "List of Form Drafts"
-MsgStr "Lista de Formularios Modelo"
+MsgStr "Lista de Formularios Borrador"
 
 MsgId "View List"
 MsgStr "Mostrar Lista"
 
 MsgId "Create New"
 MsgStr "Crear Nuevo"
+
+MsgId "Go to Dashboard"
+MsgStr "Ir al panel de administración"
+
+# For form_drafts/dashboard/index.php page
+MsgId "Select a Class to View/Edit"
+MsgStr "Selecciona una clase para Ver/Editar"
+
+MsgId "AJAX Dashboard"
+MsgStr "Panel de administración AJAX"
+
+#For the QDateTime-Related Objects and Controls
+msgid "Today"
+msgstr "Hoy"
+
+msgid "January"
+msgstr "Enero"
+
+msgid "February"
+msgstr "Febrero"
+
+msgid "March"
+msgstr "Marzo"
+
+msgid "April"
+msgstr "Abril"
+
+msgid "May"
+msgstr "Mayo"
+
+msgid "June"
+msgstr "Junio"
+
+msgid "July"
+msgstr "Julio"
+
+msgid "August"
+msgstr "Agosto"
+
+msgid "September"
+msgstr "Septiembre"
+
+msgid "October"
+msgstr "Octubre"
+
+msgid "November"
+msgstr "Noviembre"
+
+msgid "December"
+msgstr "Diciembre"
+
+msgid "Jan"
+msgstr "Ene"
+
+msgid "Feb"
+msgstr "Feb"
+
+msgid "Mar"
+msgstr "Mar"
+
+msgid "Apr"
+msgstr "Abr"
+
+msgid "Jun"
+msgstr "Jun"
+
+msgid "Jul"
+msgstr "Jul"
+
+msgid "Aug"
+msgstr "Ago"
+
+msgid "Sep"
+msgstr "Sep"
+
+msgid "Oct"
+msgstr "Oct"
+
+msgid "Nov"
+msgstr "Nov"
+
+msgid "Dec"
+msgstr "Dic"
+
+msgid "Sun"
+msgstr "Dom"
+
+msgid "Mon"
+msgstr "Lun"
+
+msgid "Tue"
+msgstr "Mar"
+
+msgid "Wed"
+msgstr "Mi&eacute;"
+
+msgid "Thu"
+msgstr "Jue"
+
+msgid "Fri"
+msgstr "Vie"
+
+msgid "Sat"
+msgstr "S&aacute;b"

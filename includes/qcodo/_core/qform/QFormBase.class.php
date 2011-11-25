@@ -26,7 +26,12 @@
 		private $strUrlHashMethod = null;
 		private $objUrlHashParentObject = null;
 		protected $strUrlHash;
-		
+
+		private $pxyPollingProxy = null;
+		private $intPollingInterval = null;
+		private $strPollingMethod = null;
+		private $objPollingParentObject = null;
+
 		protected $strPreviousRequestMode = false;
 		protected $strHtmlIncludeFilePath;
 		protected $strCssClass;
@@ -129,11 +134,9 @@
 		protected function Form_Validate() {return true;}
 		protected function Form_Exit() {}
 
-		public function VarExport($blnReturn = true) {
+		public function PrepForVarExport() {
 			if ($this->objControlArray) foreach ($this->objControlArray as $objControl)
-				$objControl->VarExport(false);
-			if ($blnReturn)
-				return var_export($this, true);
+				$objControl->PrepForVarExport();
 		}
 
 		public function IsCheckableControlRendered($strControlId) {
@@ -141,7 +144,7 @@
 		}
 
 		public static function Run($strFormId, $strAlternateHtmlFile = null) {
-			// error_log("NTOEHUNTOEHUNET HOHOHO: Run($strFormId) called");
+			global $_FORM;
 
 			// Ensure strFormId is a class
 			$objClass = new $strFormId();
@@ -156,26 +159,22 @@
 				$strPostDataState = $_POST['Qform__FormState'];
 
 				if ($strPostDataState)
-				{
 					// We might have a valid form state -- let's see by unserializing this object
 					$objClass = QForm::Unserialize($strPostDataState);
-				}
+
+				// If there is no QForm Class, then we have an Invalid Form State
+				if (!$objClass) throw new QInvalidFormStateException($strFormId);
 			}
 
 			if ($objClass) {
-				global $$strFormId;
-				$$strFormId = $objClass;
+				// Globalize
+				$_FORM = $objClass;
 
 				$objClass->strCallType = $_POST['Qform__FormCallType'];
 				$objClass->intFormStatus = QFormBase::FormStatusUnrendered;
 
-				// error_log("NTOEHUNTOEHUNET HOHOHO: CHECKING IF " . $objClass->strCallType . '==' . QCallType::Ajax);
 				if ($objClass->strCallType == QCallType::Ajax)
 					QApplication::$RequestMode = QRequestMode::Ajax;
-
-				// Globalize and Set Variable
-				global $$strFormId;
-				$$strFormId = $objClass;
 
 				// Iterate through all the control modifications
 				$strModificationArray = explode("\n", trim($_POST['Qform__FormUpdates']));
@@ -255,6 +254,9 @@
 				// We have no form state -- Create Brand New One
 				$objClass = new $strFormId();
 
+				// Globalize
+				$_FORM = $objClass;
+
 				// Setup HTML Include File Path, based on passed-in strAlternateHtmlFile (if any)
 				try {
 					$objClass->HtmlIncludeFilePath = $strAlternateHtmlFile;
@@ -262,9 +264,6 @@
 					$objExc->IncrementOffset();
 					throw $objExc;
 				}
-
-				global $$strFormId;
-				$$strFormId = $objClass;
 
 				// By default, this form is being created NOT via a PostBack
 				// So there is no CallType
@@ -274,10 +273,6 @@
 				$objClass->intFormStatus = QFormBase::FormStatusUnrendered;
 				$objClass->objControlArray = array();
 				$objClass->objGroupingArray = array();
-
-				// Globalize and Set Variable
-				global $$strFormId;
-				$$strFormId = $objClass;
 
 				// Trigger Run Event (if applicable)
 				$objClass->Form_Run();
@@ -525,12 +520,7 @@
 			if ($strSerializedForm) {
 				// Unserialize and Cast the Form
 				$objForm = unserialize($strSerializedForm);
-				try {
-					$objForm = QType::Cast($objForm, 'QForm');
-            			} catch (Exception $e) {
-					error_log("Error encountered casting unserialized form?");
-					return null;
-				}
+				$objForm = QType::Cast($objForm, 'QForm');
 
 				// Reset the links from Control->Form
 				if ($objForm->objControlArray) foreach ($objForm->objControlArray as $objControl)
@@ -649,6 +639,7 @@
 		public function EvaluateTemplate($strTemplate) {
 			global $_ITEM;
 			global $_CONTROL;
+			global $_FORM;
 
 			$_FORM = $this;
 
@@ -691,19 +682,21 @@
 			// Initially Assume Validation is True
 			$blnToReturn = true;
 
-			// Check the Control Itself
-			$objControl->ValidationReset();
-			if (!$objControl->Validate()) {
-				$objControl->MarkAsModified();
-				$blnToReturn = false;
-			}
+			if ($objControl->Visible && $objControl->Enabled && $objControl->Display) {
+				// Recursive call on Child Controls
+				foreach ($objControl->GetChildControls() as $objChildControl)
+					// Only Enabled and Visible and Rendered controls should be validated
+					if (($objChildControl->Visible) && ($objChildControl->Enabled) && ($objChildControl->RenderMethod) && ($objChildControl->OnPage))
+						if (!$this->ValidateControlAndChildren($objChildControl))
+							$blnToReturn = false;
 
-			// Recursive call on Child Controls
-			foreach ($objControl->GetChildControls() as $objChildControl)
-				// Only Enabled and Visible and Rendered controls should be validated
-				if (($objChildControl->Visible) && ($objChildControl->Enabled) && ($objChildControl->RenderMethod) && ($objChildControl->OnPage))
-					if (!$this->ValidateControlAndChildren($objChildControl))
-						$blnToReturn = false;
+				// Check the Control Itself
+				$objControl->ValidationReset();
+				if (!$objControl->Validate()) {
+					$objControl->MarkAsModified();
+					$blnToReturn = false;
+				}
+			}
 
 			return $blnToReturn;
 		}
@@ -915,7 +908,7 @@
 				$strFormAttributes .= ' class="' . $this->strCssClass . '"';
 
 			// Setup Rendered HTML
-			$strToReturn .= sprintf('<form method="post" id="%s" action="%s"%s>', $this->strFormId, QApplication::$RequestUri, $strFormAttributes);
+			$strToReturn .= sprintf('<form method="post" id="%s" action="%s"%s>', $this->strFormId, QApplication::HtmlEntities(QApplication::$RequestUri), $strFormAttributes);
 			$strToReturn .= "\r\n";
 
 			// Include javascripts that need to be included
@@ -1031,7 +1024,6 @@
 		 * @return bool
 		 */
 		public function IsPostBack() {
-			error_log("CALLTYPE is " . $this->strCallType);
 			return ($this->strCallType != QCallType::None);
 		}
 
@@ -1194,19 +1186,17 @@
 					$strEndScript = 'qc.loadJavaScriptFile("' . $strScript . '", null); ';
 			}
 
-			// Next, add qcodo includes path
-			$strEndScript = sprintf('qc.jsAssets = "%s"; ', __VIRTUAL_DIRECTORY__ . __JS_ASSETS__) . $strEndScript;
-			$strEndScript = sprintf('qc.phpAssets = "%s"; ', __VIRTUAL_DIRECTORY__ . __PHP_ASSETS__) . $strEndScript;
-			$strEndScript = sprintf('qc.cssAssets = "%s"; ', __VIRTUAL_DIRECTORY__ . __CSS_ASSETS__) . $strEndScript;
-			$strEndScript = sprintf('qc.imageAssets = "%s"; ', __VIRTUAL_DIRECTORY__ . __IMAGE_ASSETS__) . $strEndScript;
+			// Setup qcodo includes path
+			$strAssetsScript = sprintf('qc.regAL("%s", "%s", "%s", "%s");',
+				__VIRTUAL_DIRECTORY__ . __JS_ASSETS__,
+				__VIRTUAL_DIRECTORY__ . __PHP_ASSETS__,
+				__VIRTUAL_DIRECTORY__ . __CSS_ASSETS__,
+				__VIRTUAL_DIRECTORY__ . __IMAGE_ASSETS__);
 
-			// And lastly, add a Hash Processor (if any and if applicable)
+			// Add a Hash Processor (if any and if applicable)
 			if ($this->pxyUrlHashProxy && (QApplication::$RequestMode != QRequestMode::Ajax)) {
-				$strEndScript .= sprintf('setInterval("qc.processHash(\'%s\')", %s); ', $this->pxyUrlHashProxy->ControlId, $this->intUrlHashPollingInterval);
+				$strEndScript .= sprintf('qc.regHP("%s", %s); ', $this->pxyUrlHashProxy->ControlId, $this->intUrlHashPollingInterval);
 			}
-
-			// Create Final EndScript Script
-			$strEndScript = sprintf('<script type="text/javascript">qc.registerForm(); %s</script>', $strEndScript);
 
 			// Persist Controls (if applicable)
 			foreach ($this->objPersistentControlArray as $objControl)
@@ -1215,16 +1205,13 @@
 			// Clone Myself
 			$objForm = clone($this);
 
-			// Render HTML
-			$strToReturn = "\r\n<div style=\"display: none;\">\r\n\t";
-			$strToReturn .= sprintf('<input type="hidden" name="Qform__FormState" id="Qform__FormState" value="%s" />', QForm::Serialize($objForm));
-
-			$strToReturn .= "\r\n\t";
-			$strToReturn .= sprintf('<input type="hidden" name="Qform__FormId" id="Qform__FormId" value="%s" />', $this->strFormId);
-			$strToReturn .= "\r\n</div>\r\n";
+			// Create Final EndScript Script
+			$strEndScript = sprintf("<script type=\"text/javascript\">\r\n/* Qcodo v%s */\r\nqcodo.registerForm(\"%s\", \"%s\");\r\n%s\r\n%s\r\n</script>", QCODO_VERSION, $this->strFormId, QForm::Serialize($objForm), $strAssetsScript, $strEndScript);
 
 			// The Following "Hidden Form Variables" are no longer explicitly rendered in HTML, but are now
 			// added to the DOM by the Qcodo JavaScript Library method qc.initialize():
+			// * Qform__FormId
+			// * Qform__FormState
 			// * Qform__FormControl
 			// * Qform__FormEvent
 			// * Qform__FormParameter
@@ -1232,6 +1219,8 @@
 			// * Qform__FormUpdates
 			// * Qform__FormCheckableControls
 
+			// Render EndHtml
+			$strToReturn = null;
 			foreach ($this->GetAllControls() as $objControl)
 				if ($objControl->Rendered)
 					$strToReturn .= $objControl->GetEndHtml();
@@ -1263,8 +1252,12 @@
 		 * @return void
 		 */
 		public function SetUrlHashProcessor($strMethodName, $objParentControl = null, $intUrlHashPollingInterval = 250) {
+			// Causes a bug if we try and explicitly specify a QForm
+			if ($objParentControl instanceof QForm)
+				throw new QCallerException('Parent Control cannot be a QForm object.  If the method parent is this QForm, simply pass in null.');
+
 			if (!$this->pxyUrlHashProxy)
-				$this->pxyUrlHashProxy = new QControlProxy($this);
+				$this->pxyUrlHashProxy = new QControlProxy($this, 'pxyHashFor' . $this->strFormId);
 
 			// Setup Values
 			$this->intUrlHashPollingInterval = $intUrlHashPollingInterval;
@@ -1281,6 +1274,66 @@
 			$objObject = ($this->objUrlHashParentObject) ? $this->objUrlHashParentObject : $this;
 			$strMethod = $this->strUrlHashMethod;
 			$objObject->$strMethod(); 
+		}
+		
+		/**
+		 * Stops polling of URL hash processor
+		 * @return void
+		 */
+		public function ClearUrlHashProcessor() {
+			if ($this->pxyUrlHashProxy) {
+				QApplication::ExecuteJavaScript('qc.clrHP();');	
+			}
+		}
+
+		/**
+		 * Adds polling to the QForm
+		 * @param string $strMethodName name of the event handling method to be called 
+		 * @param object $objParentControl optional object that contains the method (uses the QForm if none is specified)
+		 * @param integer $intPollingInterval the interval (in ms) the polling will occur (optional, default is 2500ms)
+		 * @return void
+		 */
+		public function SetPollingProcessor($strMethodName, $objParentControl = null, $intPollingInterval = 2500) {
+			if (!$this->pxyPollingProxy)
+				$this->pxyPollingProxy = new QControlProxy($this, 'pxyPollingFor' . $this->strFormId);
+
+			// Setup Values
+			$this->intPollingInterval = $intPollingInterval;
+			$this->strPollingMethod = $strMethodName;
+			$this->objPollingParentObject = $objParentControl;
+
+			// Setup the Control Proxy
+			$this->pxyPollingProxy->RemoveAllActions(QClickEvent::EventName);
+			$this->pxyPollingProxy->AddAction(new QClickEvent(), new QAjaxAction('Polling_Process'));
+
+			// Make the JS Call
+			QApplication::ExecuteJavascript(sprintf('qc.regPP("%s", %s);', $this->pxyPollingProxy->ControlId, $this->intPollingInterval));
+		}
+
+		protected function Polling_Process($strFormId, $strControlId, $strParameter) {
+			if ($this->strPollingMethod) {
+				$objObject = ($this->objPollingParentObject) ? $this->objPollingParentObject : $this;
+				$strMethod = $this->strPollingMethod;
+				$objObject->$strMethod();
+				if ($this->strPollingMethod) QApplication::ExecuteJavascript(sprintf('qc.regPP("%s", %s);', $this->pxyPollingProxy->ControlId, $this->intPollingInterval));
+			}
+		}
+
+		/**
+		 * Returns whether or not Polling is currently active
+		 * @return boolean
+		 */
+		public function IsPollingActive() {
+			return (!is_null($this->strPollingMethod));
+		}
+
+		/**
+		 * Stops polling of polling processor
+		 * @return void
+		 */
+		public function ClearPollingProcessor() {
+			$this->strPollingMethod = null;
+			$this->objPollingParentObject = null;
 		}
 	}
 
