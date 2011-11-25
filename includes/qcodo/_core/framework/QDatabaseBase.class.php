@@ -26,6 +26,8 @@
 		protected $objConfigArray;
 		protected $blnConnectedFlag = false;
 
+		protected $objJournalingDatabase;
+
 		protected $strEscapeIdentifierBegin = '"';
 		protected $strEscapeIdentifierEnd = '"';
 
@@ -62,6 +64,14 @@
 				case 'AffectedRows':
 					return -1;
 
+				case 'JournalingDatabase':
+					return $this->objJournalingDatabase;
+
+				case 'JournaledById':
+					if (!array_key_exists('staticproperty', $this->objConfigArray)) return null;
+					if (!($strStaticPropertyName = $this->objConfigArray['staticproperty'])) return null;
+					return QApplication::$$strStaticPropertyName;
+
 				case 'Adapter':
 					$strConstantName = get_class($this) . '::Adapter';
 					return constant($strConstantName) . ' (' . $this->objConfigArray['adapter'] . ')';
@@ -70,11 +80,27 @@
 				case 'Database':
 				case 'Username':
 				case 'Password':
+				case 'StaticProperty':
 					return $this->objConfigArray[strtolower($strName)];
 
 				default:
 					try {
 						return parent::__get($strName);
+					} catch (QCallerException $objExc) {
+						$objExc->IncrementOffset();
+						throw $objExc;
+					}
+			}
+		}
+
+		public function __set($strName, $mixValue) {
+			switch ($strName) {
+				case 'JournalingDatabase':
+					return ($this->objJournalingDatabase = QType::Cast($mixValue, 'QDatabaseBase'));
+
+				default:
+					try {
+						return parent::__set($strName);
 					} catch (QCallerException $objExc) {
 						$objExc->IncrementOffset();
 						throw $objExc;
@@ -104,7 +130,6 @@
 				$this->strProfileArray = array();
 		}
 
-
 		/**
 		 * Allows for the enabling of DB profiling while in middle of the script
 		 *
@@ -112,10 +137,38 @@
 		 */
 		public function EnableProfiling() {
 			// Only perform profiling initialization if profiling is not yet enabled
-			if (!$this->blnEnableProfiling) {
+			if ($this->blnEnableProfiling == false) {
 				$this->blnEnableProfiling = true;
 				$this->strProfileArray = array();
 			}
+		}
+
+		/**
+		 * Allows for the disabling of DB profiling while in middle of the script
+		 *
+		 * @return void
+		 */
+		public function DisableProfiling() {
+			// Turn off profiling only if profiling is enabled
+			if ($this->blnEnableProfiling == true) {
+				$this->blnEnableProfiling = false;
+				$this->strProfileArray = array();
+			}
+		}
+
+		/**
+		 * Checks if any database configured has profiling turned on
+		 * @return boolean
+		 */
+		public static function IsAnyDatabaseProfilingEnabled() {
+			$blnEnabled = false;
+
+			foreach (QApplication::$Database as $objDb) {
+				if($objDb->EnableProfiling == true)
+					$blnEnabled = true;
+			}
+
+			return $blnEnabled;
 		}
 
 		/**
@@ -128,7 +181,6 @@
 			if ($this->blnEnableProfiling) {
 				// Dereference-ize Backtrace Information
 				$objDebugBacktrace = debug_backtrace();
-				$objDebugBacktrace = unserialize(serialize($objDebugBacktrace));
 
 				// Get Rid of Unnecessary Backtrace Info
 				$intLength = count($objDebugBacktrace);
@@ -346,6 +398,9 @@
 	}
 
 	abstract class QDatabaseResultBase extends QBaseClass {
+		// Allow to attach a QQueryBuilder object to use the result object as cursor resource for cursor queries.
+		protected $objQueryBuilder;
+
 		abstract public function FetchArray();
 		abstract public function FetchRow();
 		abstract public function FetchField();
@@ -357,8 +412,42 @@
 		abstract public function GetRows();
 
 		abstract public function Close();
+
+		public function __get($strName) {
+			switch ($strName) {
+				case 'QueryBuilder':
+					return $this->objQueryBuilder;
+				default:
+					try {
+						return parent::__get($strName);
+					} catch (QCallerException $objExc) {
+						$objExc->IncrementOffset();
+						throw $objExc;
+					}
+			}
+		}
+
+		public function __set($strName, $mixValue) {
+			switch ($strName) {
+				case 'QueryBuilder':
+					try {
+						return ($this->objQueryBuilder = QType::Cast($mixValue, 'QQueryBuilder'));
+					} catch (QInvalidCastException $objExc) {
+						$objExc->IncrementOffset();
+						throw $objExc;
+					}
+				default:
+					try {
+						return parent::__set($strName, $mixValue);
+					} catch (QCallerException $objExc) {
+						$objExc->IncrementOffset();
+						throw $objExc;
+					}
+			}
+		}
+
 	}
-	
+
 	abstract class QDatabaseRowBase extends QBaseClass {
 		abstract public function GetColumn($strColumnName, $strColumnType = null);
 		abstract public function ColumnExists($strColumnName);
