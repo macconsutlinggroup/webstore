@@ -1,37 +1,6 @@
-/*
-  LightSpeed Web Store
- 
-  NOTICE OF LICENSE
- 
-  This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to support@lightspeedretail.com <mailto:support@lightspeedretail.com>
- * so we can send you a copy immediately.
- 
-  DISCLAIMER
- 
- * Do not edit or add to this file if you wish to upgrade Web Store to newer
- * versions in the future. If you wish to customize Web Store for your
- * needs please refer to http://www.lightspeedretail.com for more information.
- 
- * @copyright  Copyright (c) 2011 Xsilva Systems, Inc. http://www.lightspeedretail.com
- * @license    http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
- 
- */
 ///////////////////////////////////////////////////
 // The Qcodo Object is used for everything in Qcodo
 ///////////////////////////////////////////////////
-
-function xsilvadebug(msg)
-{
-	
-	var el = document.getElementById('footer');
-	el.innerHTML = el.innerHTML + msg + "<br />";
-}
 
 	var qcodo = {
 		initialize: function() {
@@ -47,27 +16,32 @@ function xsilvadebug(msg)
 			this.IE_6_0 = 2;
 			this.IE_7_0 = 4;
 			this.IE_8_0 = 8;
+			this.IE_9_0 = 16;
+		
+			this.FIREFOX = 32;
+			this.FIREFOX_1_0 = 64;
+			this.FIREFOX_1_5 = 128;
+			this.FIREFOX_2_0 = 256;
+			this.FIREFOX_3_0 = 512;
+			this.FIREFOX_3_5 = 1024;
+			this.FIREFOX_4   = 2048;
+		
+			this.SAFARI = 4096;
+			this.SAFARI_2_0 = 8192;
+			this.SAFARI_3_0 = 16384;
+			this.SAFARI_4_0 = 32768;
+			this.SAFARI_5_0 = 65536;
+		
+			this.CHROME     = 131072;
+			this.CHROME_2_0 = 262144;
+			this.CHROME_3_0 = 524288;
+			this.CHROME_4_0 = 1048576;
+			this.CHROME_5_0 = 2097152;
 
-			this.FIREFOX = 16;
-			this.FIREFOX_1_0 = 32;
-			this.FIREFOX_1_5 = 64;
-			this.FIREFOX_2_0 = 128;
-			this.FIREFOX_3_0 = 256;
-			this.FIREFOX_3_5 = 512;
+			this.MACINTOSH = 4194304;
+			this.IPHONE = 8388608;
 
-			this.SAFARI = 1024;
-			this.SAFARI_2_0 = 2048;
-			this.SAFARI_3_0 = 4096;
-			this.SAFARI_4_0 = 8192;
-
-			this.CHROME = 16384;
-			this.CHROME_2_0 = 32768;
-			this.CHROME_3_0 = 65536;
-			this.CHROME_4_0 = 131072;
-
-			this.MACINTOSH = 262144;
-
-			this.UNSUPPORTED = 524288;
+			this.UNSUPPORTED = 16777216;
 
 			// INTERNET EXPLORER (supporting versions 6.0, 7.0 and 8.0)
 			if (navigator.userAgent.toLowerCase().indexOf("msie") >= 0) {
@@ -78,7 +52,9 @@ function xsilvadebug(msg)
 				else if (navigator.userAgent.toLowerCase().indexOf("msie 7.0") >= 0)
 					this._intBrowserType = this._intBrowserType | this.IE_7_0;
 				else if (navigator.userAgent.toLowerCase().indexOf("msie 8.0") >= 0)
-					this._intBrowserType = this._intBrowserType | this.IE_7_0;
+					this._intBrowserType = this._intBrowserType | this.IE_8_0;
+				else if (navigator.userAgent.toLowerCase().indexOf("msie 9.0") >= 0)
+					this._intBrowserType = this._intBrowserType | this.IE_9_0;
 				else
 					this._intBrowserType = this._intBrowserType | this.UNSUPPORTED;
 
@@ -98,6 +74,8 @@ function xsilvadebug(msg)
 					this._intBrowserType = this._intBrowserType | this.FIREFOX_3_0;
 				else if (strUserAgent.indexOf("firefox/3.5") >= 0)
 					this._intBrowserType = this._intBrowserType | this.FIREFOX_3_5;
+				else if (strUserAgent.indexOf("firefox/4.0") >= 0)
+					this._intBrowserType = this._intBrowserType | this.FIREFOX_4_0;
 				else
 					this._intBrowserType = this._intBrowserType | this.UNSUPPORTED;
 
@@ -112,6 +90,8 @@ function xsilvadebug(msg)
 					this._intBrowserType = this._intBrowserType | this.CHROME_3_0;
 				else if (navigator.userAgent.toLowerCase().indexOf("chrome/4.") >= 0)
 					this._intBrowserType = this._intBrowserType | this.CHROME_4_0;
+				else if (navigator.userAgent.toLowerCase().indexOf("chrome/5.") >= 0)
+					this._intBrowserType = this._intBrowserType | this.CHROME_5_0;
 				else
 					this._intBrowserType = this._intBrowserType | this.UNSUPPORTED;
 
@@ -125,6 +105,8 @@ function xsilvadebug(msg)
 					this._intBrowserType = this._intBrowserType | this.SAFARI_3_0;
 				else if (navigator.userAgent.toLowerCase().indexOf("version/4.") >= 0)
 					this._intBrowserType = this._intBrowserType | this.SAFARI_4_0;
+				else if (navigator.userAgent.toLowerCase().indexOf("version/5.") >= 0)
+					this._intBrowserType = this._intBrowserType | this.SAFARI_5_0;
 				else
 					this._intBrowserType = this._intBrowserType | this.UNSUPPORTED;
 
@@ -135,6 +117,10 @@ function xsilvadebug(msg)
 			// MACINTOSH?
 			if (navigator.userAgent.toLowerCase().indexOf("macintosh") >= 0)
 				this._intBrowserType = this._intBrowserType | this.MACINTOSH;
+
+			// IPHONE?
+			if (navigator.userAgent.toLowerCase().indexOf("iphone") >= 0)
+				this._intBrowserType = this._intBrowserType | this.IPHONE;
 
 
 
@@ -187,27 +173,26 @@ function xsilvadebug(msg)
 		// QForm-related functionality
 		/////////////////////////////
 
-			this.registerForm = function() {
-				// "Lookup" the QForm's FormId
-				var strFormId = document.getElementById("Qform__FormId").value;
+			this.registerForm = function(strFormId, strFormState) {
+				var objForm = document.getElementById(strFormId);
 
 				// Register the Various Hidden Form Elements needed for QForms
-				this.registerFormHiddenElement("Qform__FormControl", strFormId);
-				this.registerFormHiddenElement("Qform__FormEvent", strFormId);
-				this.registerFormHiddenElement("Qform__FormParameter", strFormId);
-				this.registerFormHiddenElement("Qform__FormCallType", strFormId);
-				this.registerFormHiddenElement("Qform__FormUpdates", strFormId);
-				this.registerFormHiddenElement("Qform__FormCheckableControls", strFormId);
+				this.registerFormHiddenElement("Qform__FormId", objForm, document);
+				this.registerFormHiddenElement("Qform__FormState", objForm, document);
+				this.registerFormHiddenElement("Qform__FormControl", objForm, document);
+				this.registerFormHiddenElement("Qform__FormEvent", objForm, document);
+				this.registerFormHiddenElement("Qform__FormParameter", objForm, document);
+				this.registerFormHiddenElement("Qform__FormCallType", objForm, document);
+				this.registerFormHiddenElement("Qform__FormUpdates", objForm, document);
+				this.registerFormHiddenElement("Qform__FormCheckableControls", objForm, document);
+				
+				// Set the QForm's FormId and FormState
+				document.getElementById("Qform__FormId").value = strFormId;
+				document.getElementById("Qform__FormState").value = strFormState;
 			};
 
-			this.registerFormHiddenElement = function(strId, mixForm) {
-				var objForm;
-				if (typeof(mixForm) == 'string')
-					objForm = document.getElementById(mixForm);
-				else
-					objForm = mixForm;
-
-				var objHiddenElement = document.createElement("input");
+			this.registerFormHiddenElement = function(strId, objForm, objDocument) {
+				var objHiddenElement = objDocument.createElement("input");
 				objHiddenElement.type = "hidden";
 				objHiddenElement.id = strId;
 				objHiddenElement.name = strId;
@@ -216,13 +201,37 @@ function xsilvadebug(msg)
 
 			this.wrappers = new Array();
 
+			this.registerAssetLocations = function(strJsAssets, strPhpAssets, strCssAssets, strImageAssets) {
+				qc.jsAssets = strJsAssets;
+				qc.phpAssets = strPhpAssets;
+				qc.cssAssets = strCssAssets;
+				qc.imageAssets = strImageAssets;
+			};
+
 
 
 		////////////////////////////////////
 		// URL Hash Processing
 		////////////////////////////////////
 			this.processHashCurrent = null;
-			this.processHash = function(strControlId) {
+			this.processHashIntervalId = null;
+			this.processHashControlId = null;
+
+			this.registerHashProcessor = function(strControlId, intPollingInterval) {
+				qc.processHashCurrent = null;
+				qc.processHashControlId = strControlId;
+
+				// Use native event for IE8/IE9 while NOT in IE7 CompatabilityMode
+				if (('onhashchange' in window) && (document.documentMode != 7))
+					window.onhashchange = this.processHash;
+				else
+					this.processHashIntervalId = setInterval("qc.processHash();", intPollingInterval);
+
+				// Fire processor once to process hash on load instantly not waiting for interval
+				this.processHash();
+			};
+
+			this.processHash = function() {
 				// Get the Hash Value
 				var strUrl = new String(document.location);
 
@@ -235,18 +244,44 @@ function xsilvadebug(msg)
 					var strFormId = document.getElementById("Qform__FormId").value;
 
 					// Figure out the Hash data
-					var intPosition = strUrl.indexOf('#');
-					var strHashData = "";
-
-					if (intPosition > 0)
-						strHashData = strUrl.substring(intPosition + 1);
+					var strHashData = qc.getHashContent();
 
 					// Make the callback
-					qc.pA(strFormId, strControlId, 'QClickEvent', strHashData, null);
+					qc.pA(strFormId, qc.processHashControlId, 'QClickEvent', strHashData, null);
 				};
 			};
 
+			this.getHashContent = function() {
+				var intPosition = qc.processHashCurrent.indexOf('#');
+				var strHashData = "";
 
+				if (intPosition > 0) strHashData = qc.processHashCurrent.substring(intPosition + 1);
+				return strHashData;
+			};
+
+			this.clearHashProcessor = function() {
+				//clear native event
+				if ( 'onhashchange' in window )
+					window.onhashchange = null;
+
+				if (this.processHashIntervalId)
+					clearInterval(this.processHashIntervalId);
+			};
+
+		////////////////////////////////////
+		// Polling Processing
+		////////////////////////////////////
+			this.registerPollingProcessor = function(strControlId, intPollingInterval) {
+				setTimeout("qc.processPolling('" + strControlId + "');", intPollingInterval);
+			};
+
+			this.processPolling = function(strControlId) {
+				// Get Info Needed for the Control Proxy call
+				var strFormId = document.getElementById("Qform__FormId").value;
+
+				// Make the callback
+				qc.pA(strFormId, strControlId, 'QClickEvent');
+			};
 
 		////////////////////////////////////
 		// Mouse Drag Handling Functionality
@@ -270,7 +305,6 @@ function xsilvadebug(msg)
 				// Qcodo-Wide Mouse Handling Functions only operate on the Left Mouse Button
 				// (Control-specific events can respond to QRightMouse-based Events)
 				if (qcodo.mouse.left) {
-					qcodo.mouse.left = true;
 					if (objWrapper.handleMouseDown) {
 						// Specifically for Microsoft IE
 						if (objHandle.setCapture)
@@ -400,3 +434,7 @@ function xsilvadebug(msg)
 
 	var qc = qcodo;
 	qc.initialize();
+	qc.regAL = qcodo.registerAssetLocations;
+	qc.regHP = qcodo.registerHashProcessor;
+	qc.clrHP = qcodo.clearHashProcessor;
+	qc.regPP = qcodo.registerPollingProcessor;
