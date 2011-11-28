@@ -46,12 +46,12 @@
 
 		public function Connect() {
 			// Connect to the Database Server
-            $this->objMySqli = new MySqli($this->Server, $this->Username, $this->Password, $this->Database, $this->Port);
+			$this->objMySqli = new MySqli($this->Server, $this->Username, $this->Password, $this->Database, $this->Port);
 
 			if (!$this->objMySqli)
 				throw new QMySqliDatabaseException("Unable to connect to Database", -1, null);
-
-            if ($this->objMySqli->connect_error)
+			
+			if ($this->objMySqli->connect_error)
                 throw new QMySqliDatabaseException(
                     $this->objMySqli->connect_error, 
                     $this->objMySqli->errno, 
@@ -111,7 +111,7 @@
 			$this->LogQuery($strNonQuery);
 
 			// Perform the Query
-            $this->objMySqli->query($strNonQuery);
+			$this->objMySqli->query($strNonQuery);
 			if ($this->objMySqli->error)
 				throw new QMySqliDatabaseException($this->objMySqli->error, $this->objMySqli->errno, $strNonQuery);
 		}
@@ -142,6 +142,7 @@
 
 		public function Close() {
 			$this->objMySqli->close();
+			$this->blnConnectedFlag = false;
 		}
 		
 		public function TransactionBegin() {
@@ -511,8 +512,10 @@
 
 					case QDatabaseFieldType::Date:
 					case QDatabaseFieldType::DateTime:
-					case QDatabaseFieldType::Time:
 						return new QDateTime($this->strColumnArray[$strColumnName]);
+
+					case QDatabaseFieldType::Time:
+						return QDateTime::FromTimeOnly($this->strColumnArray[$strColumnName]);
 
 					case QDatabaseFieldType::Float:
 						return QType::Cast($this->strColumnArray[$strColumnName], QType::Float);
