@@ -84,9 +84,9 @@
 	
 	<link rel="stylesheet" type="text/css" href="assets/css/search.css" id="searchcss"  />
 	<link rel="stylesheet" type="text/css" href="assets/css/dummy.css" id="dummy_css"  />
-	<link rel="stylesheet" type="text/css" href="assets/css/datepicker.css" />
+	<link rel="stylesheet" type="text/css" href="assets/css/jquery/jquery.ui.datepicker.css" />
 
-	<script type="text/javascript" src="assets/js/jquery.min.js"></script>
+	<script type="text/javascript" src="assets/js/jquery/jquery.min.js"></script>
 	<script type="text/javascript" src="assets/js/fancybox/jquery.fancybox-1.3.4.js"></script>	
 	<script type="text/javascript" src="assets/js/fancybox/jquery.easing-1.4.pack.js"></script>	
 	<link rel="stylesheet" href="assets/js/fancybox/jquery.fancybox-1.3.4.css" type="text/css" media="screen" />
