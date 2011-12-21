@@ -77,7 +77,9 @@ class Customer extends CustomerGen {
 	 * @param boolean $fallbackonStackTemp
 	 * @return obj customer
 	 */
-	public static function GetCurrent($fallbackOnStackTemp = false) {
+    public static function GetCurrent($fallbackOnStackTemp = false) {
+        $customer = null;
+
 		if (array_key_exists('customer', $_SESSION) &&
 			(!is_null($_SESSION['customer'])))
 			$customer = $_SESSION['customer'];

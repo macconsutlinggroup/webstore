@@ -210,7 +210,7 @@ class XLSNestedObjectManager extends XLSObjectManager {
 	 * @param string $strAssociationKey :: Key of the object to return for
 	 * @return array;
 	 */
-	public function &GetByAssociation($strAssociationKey) {
+	public function GetByAssociation($strAssociationKey) {
 		if (array_key_exists($strAssociationKey, $this->Associations)) {
 			$arrAssociations =& $this->Associations[$strAssociationKey];
 			return $arrAssociations;
