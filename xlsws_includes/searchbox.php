@@ -30,6 +30,10 @@ This script is used to generate the search box that appears on the top of each p
 
 global $XLSWS_VARS;
 
+$strCategory = '';
+if (isset($_GET['c']))
+    $strCategory = $_GET['c'];
+
 $this->searchPnl = new QPanel($this , 'applesearch');
 $this->searchPnl->Template = templateNamed('searchbox.tpl.php');
 
@@ -49,6 +53,13 @@ $this->misc_components['search_img']->SetCustomStyle('float','left');
 $this->misc_components['advanced_search'] = new QImageButton($this->searchPnl, 'xlsAdvancedSearch');
 $this->misc_components['advanced_search']->ImageUrl = templateNamed("css/images/adv_search.png");
 $this->misc_components['advanced_search']->CssClass= 'searchButton';
-$this->misc_components['advanced_search']->AddAction(new QClickEvent(), new QJavaScriptAction("document.location.href='index.php?xlspg=advanced_search'"));
+$this->misc_components['advanced_search']->AddAction(
+    new QClickEvent(), 
+    new QJavaScriptAction(
+        "document.location.href='index.php?xlspg=advanced_search&c=" .
+        $strCategory . 
+        "'"
+    )
+);
 $this->misc_components['advanced_search']->SetCustomStyle('float','left');
 
