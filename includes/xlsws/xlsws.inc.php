@@ -39,8 +39,13 @@ require(__XLSWS_INCLUDES__ . '/_qextend.php');
 // Add xlsws autoload include paths to QApplication
 QApplication::$ClassPath[] = __XLSWS_INCLUDES__;
 QApplication::$ClassPath[] = __XLSWS_INCLUDES__ . '/core';
+
+// TODO :: Temporary autoinclude paths for development
 QApplication::$ClassPath[] = __XLSWS_INCLUDES__ . '/qform';
 QApplication::$ClassPath[] = __XLSWS_INCLUDES__ . '/view';
+QApplication::$ClassPath[] = __XLSWS_INCLUDES__ . '/widget';
+QApplication::$ClassPath[] = __XLSWS_INCLUDES__ . '/widget/_core';
+QApplication::$ClassPath[] = __XLSWS_INCLUDES__ . '/widget/customer';
 
 // Register custom data classes / types
 QApplication::$ClassFile['imagestype'] =

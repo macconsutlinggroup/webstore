@@ -1,0 +1,109 @@
+<?php
+
+class XLSContactControl extends XLSCustomerCompositeControl {
+    # FirstName
+    # LastName
+    # Company
+    # Phone
+    # Email
+
+    protected $strFieldMapping = array(
+        'cart' => array(
+            'FirstName' => 'Firstname',
+            'LastName' => 'Lastname',
+            'Company' => 'Company', 
+            'Phone' => 'Phone',
+            'Email' => 'Email'
+        ),
+        'customer' => array(
+            'FirstName' => 'Firstname',
+            'LastName' => 'Lastname',
+            'Company' => 'Company', 
+            'Phone' => 'Phone1',
+            'Email' => 'Email'
+        )
+    );
+
+    protected function BuildFirstNameControl() {
+        $objControl = new XLSTextBox($this, $this->GetChildName('FirstName'));
+        $objControl->Name = _sp('Firstname');
+        $objControl->Required = true;
+        $objControl->SetCustomAttribute('maxlength', 64);
+
+        return $objControl;
+    }
+
+    protected function UpdateFirstNameControl() {
+        return $this->UpdateControlFromEnvironment('FirstName');
+    }
+
+    protected function BindFirstNameControl() {
+    }
+
+    protected function BuildLastNameControl() {
+        $objControl = new XLSTextBox($this, $this->GetChildName('LastName'));
+        $objControl->Name = _sp('Lastname');
+        $objControl->Required = true;
+        $objControl->SetCustomAttribute('maxlength', 64);
+    }
+
+    protected function UpdateLastNameControl() {
+        return $this->UpdateControlFromEnvironment('LastName');
+    }
+
+    protected function BindLastNameControl() {
+    }
+
+    protected function BuildCompanyControl() {
+        $objControl = new XLSTextBox($this, $this->GetChildName('Company'));
+        $objControl->Name = _sp('Company');
+        $objControl->SetCustomAttribute('maxlength', 255);
+    }
+
+    protected function UpdateCompanyControl() {
+        return $this->UpdateControlFromEnvironment('Company');
+    }
+
+    protected function BindCompanyControl() {
+    }
+
+    protected function BuildPhoneControl() {
+        $objControl = new XLSTextBox($this, $this->GetChildName('Phone'));
+        $objControl->Name = _sp('Phone');
+        $objControl->Required = true;
+        $objControl->SetCustomAttribute('maxlength', 64);
+    }
+
+    protected function UpdatePhoneControl() {
+        return $this->UpdateControlFromEnvironment('Phone');
+    }
+
+    protected function BindPhoneControl() {
+    }
+
+    protected function BuildEmailControl() {
+        $objControl = new XLSTextBox($this, $this->GetChildName('Email'));
+        $objControl->Name = _sp('Email');
+        $objControl->Required = true;
+        $objControl->SetCustomAttribute('maxlength', 255);
+    }
+
+    protected function UpdateEmailControl() {
+        return $this->UpdateControlFromEnvironment('Email');
+    }
+
+    protected function BindEmailControl() {
+    }
+
+    protected function UpdateControl() {
+        parent::UpdateControl();
+        $this->RegisterChild('FirstName');
+        $this->RegisterChild('LastName');
+        $this->RegisterChild('Company');
+        $this->RegisterChild('Phone');
+        $this->RegisterChild('Email');
+    }
+
+
+}
+
