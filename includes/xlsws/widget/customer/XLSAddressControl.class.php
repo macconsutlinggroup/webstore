@@ -1,60 +1,46 @@
 <?php
 
-class XLSAddressControl extends XLSCustomerCompositeControl {
-    protected $strFieldMapping = array(
-        'cart' => array(
-            'Street1' => null,
-            'Street2' => null,
-            'City' => null,
-            'State' => null,
-            'Country' => null,
-            'Zip' => 'Zipcode',
-        ),  
-        'customer' => array(
-            'Street1' => 'Address11',
-            'Street2' => 'Address12',
-            'City' => 'City1',
-            'State' => 'State1',
-            'Country' => 'Country1',
-            'Zip' => 'Zip1',
-        )   
-    );  
+abstract class XLSAddressControl extends XLSCustomerCompositeControl {
+    protected $strFieldMapping;
 
     protected function BuildStreet1Control() {
-        $objControl = new XLSTextBox($this, $this->GetChildName('Street1'));
+        $objControl = new XLSTextControl($this, $this->GetChildName('Street1'));
         $objControl->Name = _sp('Address');
         $objControl->Required = true;
         $objControl->SetCustomAttribute('maxlength', 255);
+
+        return $objControl;
     }
 
     protected function UpdateStreet1Control() {
-        return $this->UpdateControlFromEnvironment('Street1');
     }
 
     protected function BindStreet1Control() {
     }
 
     protected function BuildStreet2Control() {
-        $objControl = new XLSTextBox($this, $this->GetChildName('Street2'));
+        $objControl = new XLSTextControl($this, $this->GetChildName('Street2'));
         $objControl->SetCustomAttribute('maxlength', 255);
+
+        return $objControl;
     }
 
     protected function UpdateStreet2Control() {
-        return $this->UpdateControlFromEnvironment('Street2');
     }
 
     protected function BindStreet2Control() {
     }
 
     protected function BuildCityControl() {
-        $objControl = new XLSTextBox($this, $this->GetChildName('City'));
+        $objControl = new XLSTextControl($this, $this->GetChildName('City'));
         $objControl->Name = _sp('City');
         $objControl->Required = true;
         $objControl->SetCustomAttribute('maxlength', 64);
+
+        return $objControl;
     }
 
     protected function UpdateCityControl() {
-        return $this->UpdateControlFromEnvironment('City');
     }
 
     protected function BindCityControl() {
@@ -64,10 +50,12 @@ class XLSAddressControl extends XLSCustomerCompositeControl {
         $objControl = new XLSListBox($this, $this->GetChildName('Country'));
         $objControl->Name = _sp('Country');
         $objControl->Required = true;
+
+        return $objControl;
     }
 
     protected function UpdateCountryControl() {
-        $objControl = $this->GetChildByName('Country');
+        $objControl = $this->GetChild('Country');
 
         if (!$objControl)
             return;
@@ -93,32 +81,35 @@ class XLSAddressControl extends XLSCustomerCompositeControl {
     }
 
     protected function BindCountryControl() {
-        $objControl = $this->GetChildByName('Country');
+        $objControl = $this->GetChild('Country');
 
         if (!$objControl)
             return;
 
         $objControl->AddAction(
             new QChangeEvent(), 
-            new QAjaxAction($this,'DoCountryControlChange')
+            new QAjaxControlAction($this,'DoCountryControlChange')
         );
     }
 
-    protected function DoCountryControlChange($strFormId, $strControlId, 
+    public function DoCountryControlChange($strFormId, $strControlId, 
         $strParameter) 
     {
         $this->UpdateStateControl();
+        $this->Validate();
     }
 
     protected function BuildStateControl() {
         $objControl = new XLSListBox($this, $this->GetChildName('State'));
         $objControl->Name = _sp('State');
         $objControl->Required = true;
+
+        return $objControl;
     }
 
     protected function UpdateStateControl() {
-        $objControl = $this->GetChildByName('State');
-        $objCountryControl = $this->GetChildByName('Country');
+        $objControl = $this->GetChild('State');
+        $objCountryControl = $this->GetChild('Country');
 
         $objControl->RemoveAllItems();
         $objControl->AddItem(_sp('-- Select One --'), null);
@@ -137,7 +128,7 @@ class XLSAddressControl extends XLSCustomerCompositeControl {
             )
         );
 
-        if ($objStates)
+        if ($objStates) {
             foreach ($objStates as $objState)
                 $objControl->AddItem($objState->State, $objState->Code);
         }
@@ -149,14 +140,15 @@ class XLSAddressControl extends XLSCustomerCompositeControl {
     }
 
     protected function BuildZipControl() {
-        $objControl = new XLSTextBox($this, $this->GetChildName('Zip'));
+        $objControl = new XLSZipFieldControl($this, $this->GetChildName('Zip'));
         $objControl->Name = _sp('Zip/Postal Code');
         $objControl->Required = true;
         $objControl->SetCustomAttribute('maxlength', 16);
+
+        return $objControl;
     }
 
     protected function UpdateZipControl() {
-        return $this->UpdateControlFromEnvironment('Zip');
     }
 
     protected function BindZipControl() {

@@ -1,5 +1,5 @@
 <?php
 
-class AddressControl extends XLSAddressControl { 
+abstract class AddressControl extends XLSAddressControl { 
 }
 

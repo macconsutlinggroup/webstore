@@ -1,5 +1,5 @@
 <?php
 
-class ContactControl extends XLSContactControl {
+abstract class ContactControl extends XLSContactControl {
 }
 

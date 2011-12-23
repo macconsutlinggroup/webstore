@@ -21,9 +21,20 @@ class XLSShippingAddressControl extends AddressControl {
         )   
     );  
 
+    protected function UpdateStreet1Control() {
+        return $this->UpdateControlFromEnvironment('Street1');
+    }   
+
+    protected function UpdateStreet2Control() {
+        return $this->UpdateControlFromEnvironment('Street2');
+    }   
+
+    protected function UpdateCityControl() {
+        return $this->UpdateControlFromEnvironment('City');
+    }
 
     protected function UpdateCountryControl() {
-        $objControl = $this->GetChildByName('Country');
+        $objControl = $this->GetChild('Country');
 
         if (!$objControl)
             return;
@@ -71,12 +82,13 @@ class XLSShippingAddressControl extends AddressControl {
             }
         }
 
+        $objControl = $this->UpdateControlFromEnvironment('Country');
         return $objControl;
     }
 
     protected function UpdateStateControl() {
-        $objControl = $this->GetChildByName('State');
-        $objCountryControl = $this->GetChildByName('Country');
+        $objControl = $this->GetChild('State');
+        $objCountryControl = $this->GetChild('Country');
 
         $objControl->RemoveAllItems();
         $objControl->AddItem(_sp('-- Select One --'), null);
@@ -137,7 +149,12 @@ class XLSShippingAddressControl extends AddressControl {
             }
         }
 
+        $objControl = $this->UpdateControlFromEnvironment('Country');
         return $objControl;
+    }
+
+    protected function UpdateZipControl() {
+        return $this->UpdateControlFromEnvironment('Zip');
     }
 
 }

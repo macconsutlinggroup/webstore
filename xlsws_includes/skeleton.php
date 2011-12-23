@@ -70,29 +70,29 @@ class xlsws_index extends QForm {
 	public $blnGetScreenRes = false; //true or false, get the current shopper's screen resolution
 
 	/*Shared widgets by customer register and checkout*/
-	protected $txtCREmail; //input textbox for email address
-	protected $txtCRFName; //input textbox for first name
-	protected $txtCRLName; //input textbox for last name
-	protected $txtCRCompany; //input textbox for company name
-	protected $txtCRMPhone; //input textbox for phone number
+	//protected $txtCREmail; //input textbox for email address
+	//protected $txtCRFName; //input textbox for first name
+	//protected $txtCRLName; //input textbox for last name
+	//protected $txtCRCompany; //input textbox for company name
+	//protected $txtCRMPhone; //input textbox for phone number
 
-	protected $txtCRShipFirstname; //input text box for shipping first name
-	protected $txtCRShipLastname; //input text box for shipping last name
-	protected $txtCRShipCompany; //input text box for shipping company
-	protected $txtCRShipAddr1; //input text box for shipping address line 1
-	protected $txtCRShipAddr2; //input text box for shipping address line 2
-	protected $txtCRShipCountry; //input text box for shipping country (hidden)
-	protected $txtCRShipState; //input text box for shipping state (hidden)
-	protected $txtCRShipCity; //input text box for shipping city
-	protected $txtCRShipZip; //input text box for shipping zip or postal code
-	protected $txtCRShipPhone; //input text box for shipping phone number
+	//protected $txtCRShipFirstname; //input text box for shipping first name
+	//protected $txtCRShipLastname; //input text box for shipping last name
+	//protected $txtCRShipCompany; //input text box for shipping company
+	//protected $txtCRShipAddr1; //input text box for shipping address line 1
+	//protected $txtCRShipAddr2; //input text box for shipping address line 2
+	//protected $txtCRShipCountry; //input text box for shipping country (hidden)
+	//protected $txtCRShipState; //input text box for shipping state (hidden)
+	//protected $txtCRShipCity; //input text box for shipping city
+	//protected $txtCRShipZip; //input text box for shipping zip or postal code
+	//protected $txtCRShipPhone; //input text box for shipping phone number
 
-	protected $txtCRBillAddr1; //input text box for billing address line 1
-	protected $txtCRBillAddr2; //input text box for shipping address line 2
-	protected $txtCRBillCountry; //input text box for billing country (hidden)
-	protected $txtCRBillState; //input text box for billing state (hidden)
-	protected $txtCRBillCity; //input text box for billing city
-	protected $txtCRBillZip; //input text box for billing zip or postal code
+	//protected $txtCRBillAddr1; //input text box for billing address line 1
+	//protected $txtCRBillAddr2; //input text box for shipping address line 2
+	//protected $txtCRBillCountry; //input text box for billing country (hidden)
+	//protected $txtCRBillState; //input text box for billing state (hidden)
+	//protected $txtCRBillCity; //input text box for billing city
+	//protected $txtCRBillZip; //input text box for billing zip or postal code
 	protected $txtCRVerify; //input text box for entering the captcha image
 
 	protected $objShipStateWait; //object to hold wait icon for when a shipping state changes
@@ -159,7 +159,8 @@ class xlsws_index extends QForm {
 	 * @param string - the input type name of this widget
 	 * @return none
 	 */
-	protected function build_fname_widget($qpanel,$name) {
+    protected function build_fname_widget($qpanel,$name) {
+        return;
 		$widget = "txtCRFName";
 
 		if (strstr($name,"ship"))

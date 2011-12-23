@@ -11,28 +11,31 @@ class XLSCompositeControl extends QPanel {
         return $this->GetChildControl($this->GetChildName($strName));
     }
 
-    protected function IsRegistered($strName) {
+    public function IsRegistered($strName) {
         return in_array($strName, $this->strRegisteredChildren);
     }
 
-    protected function IsBuilt($strName) {
+    public function IsBuilt($strName) {
         if ($this->GetChildByName($strName)) return true;
         return false;
     }
 
-    protected function RegisterChild($strName) {
+    protected function RegisterChild($strName, $blnBuild = false) {
         if (!$this->IsRegistered($strName))
             $this->strRegisteredChildren[] = $strName;
+
+        if ($blnBuild)
+            $objControl = $this->GetChild($strName);
     }
 
     protected function UnregisterChild($strName) {
-        if ($this->IsRegistered($strName)
+        if ($this->IsRegistered($strName))
             foreach ($this->strRegisteredChildren as $key => $value)
                 if ($value == $strName) 
                     unset($this->strRegisteredChildren[$key]);
     }
 
-    protected function GetChild($strName) {
+    public function GetChild($strName) {
         $objControl = $this->GetChildByName($strName);
 
         if (!$objControl and $this->IsRegistered($strName)) {
@@ -45,7 +48,7 @@ class XLSCompositeControl extends QPanel {
 
             if (method_exists($this, $strUpdate))
                 $this->$strUpdate();
-
+            
             if (method_exists($this, $strBind))
                 $this->$strBind();
         }
@@ -53,7 +56,7 @@ class XLSCompositeControl extends QPanel {
         return $objControl;
     }
 
-    protected function UpdateChild($strName) {
+    public function UpdateChild($strName) {
         $objControl = $this->GetChildByName($strName);
         $strUpdate = 'Update' . $strName . 'Control';
 
@@ -73,6 +76,19 @@ class XLSCompositeControl extends QPanel {
     protected function BuildControl() {}
     protected function UpdateControl() {}
     protected function BindControl() {}
+
+    public function Validate() {
+        foreach ($this->strRegisteredChildren as $strName) {
+            if (!$this->IsBuilt($strName)) continue;
+
+            $objControl = $this->GetChildByName($strName);
+
+            error_log(__FUNCTION__ . ' ' . $strName);
+
+            $this->GetChildByName($strName)->Validate();
+
+        }
+    }
 
     public function __construct($objParentControl, $strControlId) {
         try { 
@@ -96,6 +112,7 @@ class XLSCompositeControl extends QPanel {
 
             if ($this->IsRegistered($strName))
                 return $this->GetChild($strName);
+
         }
 
         switch ($strName) {

@@ -31,6 +31,113 @@
  * and assigning template variables to the views related to the checkout page
  */
 class xlsws_checkout extends xlsws_index {
+
+    // New
+    protected $BillingContactControl;
+    protected $BillingAddressControl;
+    protected $ShippingContactControl;
+    protected $ShippingAddressControl;
+
+    protected $BillingPanel;
+    protected $ShippingPanel;
+
+
+    protected function BuildForm() {
+        $this->BillingContactControl = 
+            new BillingContactControl($this, 'BillingContact');
+        $this->BillingAddressControl = 
+            new BillingAddressControl($this, 'BillingAddress');
+        $this->ShippingContactControl = 
+            new ShippingContactControl($this, 'ShippingContact');
+        $this->ShippingAddressControl = 
+            new ShippingAddressControl($this, 'ShippingAddress');
+    }
+
+    protected function UpdateForm() {
+
+    }
+
+    protected function BindForm() {
+
+    }
+
+    public function __get($strName) {
+        switch ($strName) {
+            case 'txtCRFName': 
+                return $this->BillingContactControl->FirstNameCtrl;
+
+            case 'txtCRLName': 
+                return $this->BillingContactControl->LastNameCtrl;
+
+            case 'txtCRCompany': 
+                return $this->BillingContactControl->CompanyCtrl;
+
+            case 'txtCRMPhone': 
+                return $this->BillingContactControl->PhoneCtrl;
+
+            case 'txtCREmail': 
+                return $this->BillingContactControl->EmailCtrl;
+
+            case 'txtCRBillAddr1':
+                return $this->BillingAddressControl->Street1Ctrl;
+            
+            case 'txtCRBillAddr2':
+                return $this->BillingAddressControl->Street2Ctrl;
+
+            case 'txtCRBillCity':
+                return $this->BillingAddressControl->CityCtrl;
+
+            case 'txtCRBillCountry':
+                return $this->BillingAddressControl->CountryCtrl;
+
+            case 'txtCRBillState':
+                return $this->BillingAddressControl->StateCtrl;
+
+            case 'txtCRBillZip':
+                return $this->BillingAddressControl->ZipCtrl;
+
+            case 'txtCRShipFirstName': 
+                return $this->ShippingContactControl->FirstNameCtrl;
+
+            case 'txtCRShipLastName': 
+                return $this->ShippingContactControl->LastNameCtrl;
+
+            case 'txtCRShipCompany': 
+                return $this->ShippingContactControl->CompanyCtrl;
+
+            case 'txtCRShipPhone': 
+                return $this->ShippingContactControl->PhoneCtrl;
+
+            case 'txtCRShipAddr1':
+                return $this->ShippingAddressControl->Street1Ctrl;
+            
+            case 'txtCRShipAddr2':
+                return $this->ShippingAddressControl->Street2Ctrl;
+
+            case 'txtCRShipCity':
+                return $this->ShippingAddressControl->CityCtrl;
+
+            case 'txtCRShipCountry':
+                return $this->ShippingAddressControl->CountryCtrl;
+
+            case 'txtCRShipState':
+                return $this->ShippingAddressControl->StateCtrl;
+
+            case 'txtCRShipZip':
+                return $this->ShippingAddressControl->ZipCtrl;
+
+            default:
+                try { 
+                    return parent::__get($strName);
+                }
+                catch (QCallerException $objExc) {
+                    $objExc->IncrementOffset();
+                    throw $objExc;
+                }
+        }
+    }
+
+
 	/*see xlsws_index for shared widgets*/
 	protected $lstCRShipPrevious; //input select box for previously shipped addresses
 
@@ -384,28 +491,28 @@ class xlsws_checkout extends xlsws_index {
 	 * @return none
 	 */
 	protected function bind_widgets() {
-		$this->txtCRBillCountry->AddAction(new QChangeEvent(), new QAjaxAction('txtBillCountry_Change'));
+		//$this->txtCRBillCountry->AddAction(new QChangeEvent(), new QAjaxAction('txtBillCountry_Change'));
 
-		$this->txtCRBillAddr1->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
-		$this->txtCRBillAddr2->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
-		$this->txtCRBillState->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
-		$this->txtCRBillCity->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
-		$this->txtCRBillZip->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
-		$this->txtCRBillCountry->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
-		$this->txtCRFName->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
-		$this->txtCRLName->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
-		$this->txtCRCompany->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
+		//$this->txtCRBillAddr1->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
+		//$this->txtCRBillAddr2->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
+		//$this->txtCRBillState->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
+		//$this->txtCRBillCity->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
+		//$this->txtCRBillZip->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
+		//$this->txtCRBillCountry->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
+		//$this->txtCRFName->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
+		//$this->txtCRLName->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
+		//$this->txtCRCompany->AddAction(new QChangeEvent(), new QAjaxAction('BillAddrChange'));
 
-		$this->txtCRShipAddr1->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
-		$this->txtCRShipAddr2->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
-		$this->txtCRShipState->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
-		$this->txtCRShipCity->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
-		$this->txtCRShipZip->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
-		$this->txtCRShipCountry->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
-		$this->txtCRShipFirstname->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
-		$this->txtCRShipLastname->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
-		$this->txtCRShipCompany->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
-		$this->txtCRShipCountry->AddAction(new QChangeEvent() , new QAjaxAction('shipCountry_Change'));
+		//$this->txtCRShipAddr1->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
+		//$this->txtCRShipAddr2->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
+		//$this->txtCRShipState->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
+		//$this->txtCRShipCity->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
+		//$this->txtCRShipZip->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
+		//$this->txtCRShipCountry->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
+		//$this->txtCRShipFirstname->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
+		//$this->txtCRShipLastname->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
+		//$this->txtCRShipCompany->AddAction(new QChangeEvent(), new QAjaxAction('setupShipping'));
+		//$this->txtCRShipCountry->AddAction(new QChangeEvent() , new QAjaxAction('shipCountry_Change'));
 
 		$this->butCalcShipping->AddAction(new QClickEvent() , new QAjaxAction('setupShipping'));
 		$this->btnPromoVerify->AddAction(new QClickEvent() , new QAjaxAction('validatePromoCode'));
@@ -490,6 +597,8 @@ class xlsws_checkout extends xlsws_index {
 	protected function build_main() {
 		global $XLSWS_VARS;
 
+        $this->BuildForm();
+
 		$customer = Customer::GetCurrent();
 
 		$this->checktaxonly = false;
@@ -522,7 +631,7 @@ class xlsws_checkout extends xlsws_index {
 		$this->check_guest_checkout();
 
 		// Wait icon
-		$this->objDefaultWaitIcon = new QWaitIcon($this);
+        $this->objDefaultWaitIcon = new QWaitIcon($this);
 
 		$this->crumbs[] = array('key'=>'xlspg=cart' , 'case'=> '' , 'name'=> _sp('Cart'));
 		$this->crumbs[] = array('key'=>'xlspg=checkout' , 'case'=> '' , 'name'=> _sp('Check Out'));
@@ -547,6 +656,7 @@ class xlsws_checkout extends xlsws_index {
 		$this->pnlShippingAdde->Template = templateNamed('reg_shipping_address.tpl.php');
 		$this->pnlShippingAdde->CssClass = "c2";
 
+        /*
 		$this->build_widgets();
 
 		$this->build_calcshipping();
@@ -563,7 +673,7 @@ class xlsws_checkout extends xlsws_index {
 		// Gift Registry check!
 		$this->check_registry();
 
-		/*The below attributes are not intended to be directly overloaded or modified*/
+		//The below attributes are not intended to be directly overloaded or modified
 		// Checkout agree
 		$this->chkAgree = new QCheckBox($this->pnlVerify);
 
@@ -574,6 +684,7 @@ class xlsws_checkout extends xlsws_index {
 		$this->btnSubmit->PrimaryButton = true;
 
 		$this->btnSubmit->AddAction(new QClickEvent(), new QServerAction('btnSubmit_Click'));
+        */
 
 		// Wait
 		$this->pnlWait = new QPanel($this->mainPnl);
@@ -591,9 +702,11 @@ class xlsws_checkout extends xlsws_index {
 		$this->pxyCheckout->AddAction(new QClickEvent(500) , new QServerAction('processCheckout'));
 		$this->build_login_register();
 
+        /*
 		$this->setupShipping();
 
-		$this->setupPayment(true);
+        $this->setupPayment(true);
+         */
 	}
 
 	/**

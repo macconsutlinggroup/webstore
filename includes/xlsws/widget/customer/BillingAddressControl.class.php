@@ -1,5 +1,5 @@
 <?php 
 
-class BillingControl extends XLSBillingControl { 
+class BillingAddressControl extends XLSBillingAddressControl { 
 }
 

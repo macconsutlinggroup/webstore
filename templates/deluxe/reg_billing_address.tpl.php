@@ -49,7 +49,7 @@
 	<div class="block margin clear">
 	<dl>
 	<dt><label for="Country"><?php _xt("Country") ?></label></dt>
-	
+
 	<dd><?php $this->txtCRBillCountry->RenderWithError() ?></dd>
 	</dl>
 	</div><br />
@@ -66,7 +66,7 @@
 	<dl>
 	<dt><label for="Zip" class="zip"><?php _xt("Zip/Postal Code") ?></label></dt>
 	
-	<dd><?php $this->txtCRBillZip->Render() ?></dd>
+	<dd><?php $this->txtCRBillZip->RenderWithError() ?></dd>
 	</dl>
 	</div>
 	

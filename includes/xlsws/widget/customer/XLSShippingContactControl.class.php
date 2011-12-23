@@ -17,6 +17,22 @@ class XLSShippingContactControl extends ContactControl {
         )
     );
 
+    protected function UpdateFirstNameControl() {
+        return $this->UpdateControlFromEnvironment('FirstName');
+    }   
+
+    protected function UpdateLastNameControl() {
+        return $this->UpdateControlFromEnvironment('Name');
+    }   
+
+    protected function UpdateCompanyControl() {
+        return $this->UpdateControlFromEnvironment('Company');
+    }   
+
+    protected function UpdatePhoneControl() {
+        return $this->UpdateControlFromEnvironment('Phone');
+    }   
+
     protected function UpdateControl() {
         parent::UpdateControl();
         $this->UnregisterChild('Email');
