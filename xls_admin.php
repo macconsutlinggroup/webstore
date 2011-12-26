@@ -2493,7 +2493,7 @@
 			// Setup the First and Last name columns with HtmlEntities set to false (because they may be rendering textbox controls)
 			
 			foreach($this->arrFields as $field=>$properties){
-				$this->dtgItems->AddColumn(new QDataGridColumn(
+				$this->dtgItems->AddColumn(new QDataGridColumn( 
 							$properties['Name'], '<?= $_FORM->FieldColumn_Render($_ITEM , \'' . $field  . '\') ?>'
 							, 'CssClass=' . (isset($properties['CssClass'])?$properties['CssClass']:"gencol")
 							, (isset($properties['Width'])?"Width=".$properties['Width']." " : "Wrap=false ")
@@ -2662,13 +2662,23 @@
 		// If the person for the row we are rendering is currently being edited,
 		// show the textbox.  Otherwise, display the contents as is.
 		public function FieldColumn_Render($objItem , $field) {
-			if (($objItem->Rowid == $this->intEditRowid) ||
-			(($this->intEditRowid == -1) && (!$objItem->Rowid))){
-				if(isset($this->arrFields[$field]['Width']))
-					$this->arrFields[$field]['Field']->Width = $this->arrFields[$field]['Width'];
+			if (
+					($objItem->Rowid == $this->intEditRowid) ||
+					(
+						($this->intEditRowid == -1) && (!$objItem->Rowid)
+					)
+				){
 				
-				return $this->arrFields[$field]['Field']->RenderWithError(false);
-			}else{
+					if(isset($this->arrFields[$field]['Width']))
+						$this->arrFields[$field]['Field']->Width = $this->arrFields[$field]['Width'];
+					if($field=="Lscodes")
+						{
+							$this->arrFields[$field]['Field']->Text = "<a href='#' id='promodefine'>Edit Restrictions</a>";
+							$this->arrFields[$field]['Field']->HtmlEntities = false;
+						}
+
+					return $this->arrFields[$field]['Field']->RenderWithError(false);
+				}else{
 				
 				if(isset($this->arrFields[$field]['DisplayFunc'])){
 					$func =  $this->arrFields[$field]['DisplayFunc'];
@@ -3460,7 +3470,11 @@
 			$this->qqn = QQN::PromoCode();
 
 			$this->arrFields = array();
-
+		
+			$this->arrFields['Enabled'] = array('Name' => 'Active');
+			$this->arrFields['Enabled']['Field'] = new QCheckBox($this); 	
+			$this->arrFields['Enabled']['DisplayFunc'] = "RenderCheck";
+			$this->arrFields['Enabled']['Width'] = 30;	
 			
 			$this->arrFields['Code'] = array('Name' => 'Promo Code');
 			$this->arrFields['Code']['Field'] = new XLSTextBox($this);
@@ -3489,10 +3503,10 @@
 			$this->arrFields['ValidUntil']['Field']->Required = true;
 			$this->arrFields['ValidUntil']['Width'] = 90;	
 			
-			$this->arrFields['Lscodes'] = array('Name' => 'Specific Product Codes<br>(comma delimited)');
-			$this->arrFields['Lscodes']['Field'] = new XLSTextBox($this);
-			$this->arrFields['Lscodes']['Field']->Required = false;
-			$this->arrFields['Lscodes']['Width'] = 120;
+			$this->arrFields['Lscodes'] = array('Name' => 'Product<br>Restrictions');
+			$this->arrFields['Lscodes']['Field'] = new QLabel($this);	
+			$this->arrFields['Lscodes']['Width'] = 450;
+			$this->arrFields['Lscodes']['DisplayFunc'] = "RenderPromoFilters";
 
 			$this->arrFields['QtyRemaining'] = array('Name' => '# Uses Remain<br>(blank = unlimited)');
 			$this->arrFields['QtyRemaining']['Field'] = new XLSTextBox($this); 	
@@ -3516,6 +3530,10 @@
             return PromoCodeType::ToString($intType);
 		}
 		
+		protected function RenderCheck($intType) {
+            if ($intType==1) return "✓";
+		}
+		
 		protected function RenderQtyRemaining($intQtyRemaining){			
 			if($intQtyRemaining== '-1')
 				return 'Unlimited';
@@ -3531,6 +3549,14 @@
 			return $strThreshold;
 			
 		}
+
+		protected function RenderPromoFilters($item){
+			if (strlen($item)>0)
+				return "<b> Restrictions Applied</b>";
+			else
+				return "";
+		}
+
 
 
 		protected function btnEdit_Click($strFormId, $strControlId, $strParameter){
@@ -3569,6 +3595,10 @@
 		protected function beforeSave($objItem ){
 			if ($this->arrFields['QtyRemaining']['Field']->Text=='')
 				$objItem->QtyRemaining = '-1';
+				
+			if ($this->arrFields['Lscodes']['Field']->Text=="<a href='#' id='promodefine'>Edit Restrictions</a>")
+				$objItem->Lscodes = '';
+				
 			return $objItem;			
 		}
 		
@@ -4344,6 +4374,9 @@
 			
 				//@Todo: Add any 2.2 changes here
 			
+				_dbx("ALTER TABLE xlsws_promo_code ADD COLUMN enabled tinyint (1) NOT NULL DEFAULT 1 AFTER rowid");
+				_dbx("UPDATE xlsws_promo_code SET enabled=1");
+				
 				$this->arrMPnls['UpgradeWS']->Text .= "<br/>Upgrading to Database schema 220";
 				$config = Configuration::LoadByKey("DATABASE_SCHEMA_VERSION");
 				$config->Value="220";

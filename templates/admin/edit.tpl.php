@@ -66,6 +66,60 @@
     $('#featureElementsc_info .feature').hide();
     $($('#featureElementsc_info .feature')[n]).show();
   }
+  function highlight_div(checkbox_node)
+	{
+	    label_node = checkbox_node.parentNode;
+	
+	    if (checkbox_node.checked)
+		{
+			label_node.style.backgroundColor='#0a246a';
+			label_node.style.color='#fff';
+		}
+		else
+		{
+			label_node.style.backgroundColor='#fff';
+			label_node.style.color='#000';
+		}
+	}
+
+  $(function() {
+        $("#promodefine").live('click', function(event) {
+
+            $(this).addClass("selected").parent().append('<div class="messagepop pop"><form method="post" id="new_message" action="/messages"><div style="font:13.3px sans-serif;width:150px;border-left:1px solid #808080;border-top:1px solid #808080;border-bottom:1px solid #fff; border-right:1px solid #fff;">' + 
+            '<div style="background:#fff; overflow:auto;height:150px;border-left:1px solid #404040;border-top:1px solid #404040;border-bottom:1px solid #d4d0c8;border-right:1px solid #d4d0c8;">' + 
+            '<label for="cb1" style="padding-left:8px;padding-right:3px;padding-bottom:5px;display:block;">' + 
+            '<input name="checkbox[]" value="1" type="checkbox" id="cb1" onclick="highlight_div(this);">dill pickle</label>\n' +
+            '<label for="cb2" style="padding-left:8px;padding-right:3px;padding-bottom:5px;display:block;">' + 
+            '<input name="checkbox[]" value="2" type="checkbox" id="cb2" onclick="highlight_div(this);">dime</label>\n' +
+            '<label for="cb3" style="padding-left:8px;padding-right:3px;padding-bottom:5px;display:block;">' + 
+            '<input name="checkbox[]" value="3" type="checkbox" id="cb3" onclick="highlight_div(this);">dinosaur</label>\n' +
+            '</div></div><p><a class="f_submit" href="/"><b>Apply</b></a> or <a class="close" href="/"><b>Cancel</b></a></p></form></div>');
+            $(".pop").slideFadeToggle(function() { 
+                $("#email").focus();
+            });
+            return false;
+        });
+
+		$(".f_submit").live('click', function() {
+            $(".pop").slideFadeToggle(function() { 
+                $("#contact").removeClass("selected");
+            });
+            return false;
+        });
+        
+        $(".close").live('click', function() {
+            $(".pop").slideFadeToggle(function() { 
+                $("#contact").removeClass("selected");
+            });
+            return false;
+        });
+    });
+
+    $.fn.slideFadeToggle = function(easing, callback) {
+        return this.animate({ opacity: 'toggle', height: 'toggle' }, "fast", easing, callback);
+    };    
+    
+    
   </script>
 	
 		
