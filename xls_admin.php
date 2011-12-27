@@ -3482,14 +3482,14 @@
 			$this->arrFields['ValidFrom'] = array('Name' => 'Valid from<br>(yyyy-mm-dd)');
 			$this->arrFields['ValidFrom']['Field'] = new XLSTextBox($this);
 			$this->arrFields['ValidFrom']['Field']->Required = true;
-			$this->arrFields['ValidFrom']['Width'] = 90;
+			$this->arrFields['ValidFrom']['Width'] = 80;
 			
 			$this->arrFields['ValidUntil'] = array('Name' => 'Valid until<br>(yyyy-mm-dd)');
 			$this->arrFields['ValidUntil']['Field'] = new XLSTextBox($this);
 			$this->arrFields['ValidUntil']['Field']->Required = true;
-			$this->arrFields['ValidUntil']['Width'] = 90;	
+			$this->arrFields['ValidUntil']['Width'] = 80;	
 			
-			$this->arrFields['Lscodes'] = array('Name' => 'Specific Product Codes<br>(comma delimited)');
+			$this->arrFields['Lscodes'] = array('Name' => 'Restrictions<br>(comma delimited)');
 			$this->arrFields['Lscodes']['Field'] = new XLSTextBox($this);
 			$this->arrFields['Lscodes']['Field']->Required = false;
 			$this->arrFields['Lscodes']['Width'] = 120;

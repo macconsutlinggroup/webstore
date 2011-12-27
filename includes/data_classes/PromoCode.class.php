@@ -38,7 +38,8 @@ class PromoCode extends PromoCodeGen {
 	}
 
 	protected function IsActive() {
-		if ($this->IsStarted() &&
+		if ($this->IsEnabled() &&
+			$this->IsStarted() &&
 			!$this->IsExpired() &&
 			$this->HasRemaining())
 				return true;
@@ -50,6 +51,18 @@ class PromoCode extends PromoCodeGen {
 		if ($this->intQtyRemaining == 0)
 			return false;
 		return true;
+	}
+
+	protected function IsEnabled() {
+		if ($this->blnEnabled)
+			return true;
+		return false;
+	}
+
+	protected function IsExcept() {
+		if ($this->blnExcept)
+			return true;
+		return false;
 	}
 
 	protected function IsStarted() {
@@ -66,33 +79,42 @@ class PromoCode extends PromoCodeGen {
 
 	public function IsProductAffected($objItem) {
 		$arrCode = $this->LsCodeArray;
-		if (empty($arrCode))
+		error_log("here1");
+		
+		if (empty($arrCode)) //no product restrictions
 			return true;
+		error_log("here2");
+
+		//We normally return true if it's a match. If this code uses Except, then the logic is reversed
+		$boolReturn = false;
+		if ($this->IsExcept()) $boolReturn = true;
 
         foreach($arrCode as $strCode) {
             $strCode=strtolower($strCode);
-            
+            error_log("comapring ".substr($strCode, 0,8));
             if (substr($strCode, 0,7) == "family:" && 
                 substr($strCode,7,255) == strtolower($objItem->Product->Family)) 
-            return true;
+            { $boolReturn = $this->IsExcept() ? false : true; error_log("bool is now ".$boolReturn); }
             
             if (substr($strCode, 0,6) == "class:" && 
                 substr($strCode,6,255) == strtolower($objItem->Product->ClassName)) 
-            return true;
-            
+            { $boolReturn = $this->IsExcept() ? false : true; error_log("bool is now ".$boolReturn); }
+             
             if (substr($strCode, 0,8) == "keyword:" && (
-                substr($strCode,8,255) == strtolower($objItem->Product->WebKeyword1,8,255) ||
-                substr($strCode,8,255) == strtolower($objItem->Product->WebKeyword2,8,255) ||
-                substr($strCode,8,255) == strtolower($objItem->Product->WebKeyword3,8,255) )              
+                substr($strCode,8,255) == strtolower($objItem->Product->WebKeyword1) ||
+                substr($strCode,8,255) == strtolower($objItem->Product->WebKeyword2) ||
+                substr($strCode,8,255) == strtolower($objItem->Product->WebKeyword3) )              
                 ) 
-            return true;
-           
+            { $boolReturn = $this->IsExcept() ? false : true; error_log("bool is now ".$boolReturn); }
+            
         }  
+		error_log("here3");
 		  
 		  if (_xls_array_search_begin($objItem->Code, $arrCode))
-			return true;
+			$boolReturn = $this->IsExcept() ? false : true;
+		error_log("here4");
 
-		return false;
+		return $boolReturn; 
 	}
 
 	/**
@@ -129,6 +151,9 @@ class PromoCode extends PromoCodeGen {
 
 			case 'Active':
 				return $this->IsActive();
+
+			case 'Except':
+				return $this->IsExcept();
 
 			case 'HasRemaining':
 				return $this->HasRemaining();
