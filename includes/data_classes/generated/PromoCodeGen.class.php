@@ -47,7 +47,7 @@
 		 * @var boolean blnEnabled
 		 */
 		protected $blnEnabled;
-		const EnabledDefault = 1;
+		const EnabledDefault = null;
 
 
 		/**
@@ -55,7 +55,7 @@
 		 * @var boolean blnEnabled
 		 */
 		protected $blnExcept;
-		const ExceptDefault = 0;
+		const ExceptDefault = null;
 
 
 		/**
@@ -454,7 +454,7 @@
 			$objToReturn->intRowid = $objDbRow->GetColumn($strAliasName, 'Integer');
 			$strAliasName = array_key_exists($strAliasPrefix . 'enabled', $strColumnAliasArray) ? $strColumnAliasArray[$strAliasPrefix . 'enabled'] : $strAliasPrefix . 'enabled';
 			$objToReturn->blnEnabled = $objDbRow->GetColumn($strAliasName, 'Bit');
-			$strAliasName = array_key_exists($strAliasPrefix . 'except', $strColumnAliasArray) ? $strColumnAliasArray[$strAliasPrefix . 'enabled'] : $strAliasPrefix . 'except';
+			$strAliasName = array_key_exists($strAliasPrefix . 'except', $strColumnAliasArray) ? $strColumnAliasArray[$strAliasPrefix . 'except'] : $strAliasPrefix . 'except';
 			$objToReturn->blnExcept = $objDbRow->GetColumn($strAliasName, 'Bit');
 			$strAliasName = array_key_exists($strAliasPrefix . 'code', $strColumnAliasArray) ? $strColumnAliasArray[$strAliasPrefix . 'code'] : $strAliasPrefix . 'code';
 			$objToReturn->strCode = $objDbRow->GetColumn($strAliasName, 'VarChar');

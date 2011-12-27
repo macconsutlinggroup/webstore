@@ -79,11 +79,9 @@ class PromoCode extends PromoCodeGen {
 
 	public function IsProductAffected($objItem) {
 		$arrCode = $this->LsCodeArray;
-		error_log("here1");
 		
 		if (empty($arrCode)) //no product restrictions
 			return true;
-		error_log("here2");
 
 		//We normally return true if it's a match. If this code uses Except, then the logic is reversed
 		$boolReturn = false;
@@ -93,26 +91,24 @@ class PromoCode extends PromoCodeGen {
             $strCode=strtolower($strCode);
             error_log("comapring ".substr($strCode, 0,8));
             if (substr($strCode, 0,7) == "family:" && 
-                substr($strCode,7,255) == strtolower($objItem->Product->Family)) 
-            { $boolReturn = $this->IsExcept() ? false : true; error_log("bool is now ".$boolReturn); }
+                trim(substr($strCode,7,255)) == strtolower($objItem->Product->Family)) 
+            $boolReturn = $this->IsExcept() ? false : true; 
             
             if (substr($strCode, 0,6) == "class:" && 
-                substr($strCode,6,255) == strtolower($objItem->Product->ClassName)) 
-            { $boolReturn = $this->IsExcept() ? false : true; error_log("bool is now ".$boolReturn); }
+                trim(substr($strCode,6,255)) == strtolower($objItem->Product->ClassName)) 
+             $boolReturn = $this->IsExcept() ? false : true;
              
             if (substr($strCode, 0,8) == "keyword:" && (
-                substr($strCode,8,255) == strtolower($objItem->Product->WebKeyword1) ||
-                substr($strCode,8,255) == strtolower($objItem->Product->WebKeyword2) ||
-                substr($strCode,8,255) == strtolower($objItem->Product->WebKeyword3) )              
+                trim(substr($strCode,8,255)) == strtolower($objItem->Product->WebKeyword1) ||
+                trim(substr($strCode,8,255)) == strtolower($objItem->Product->WebKeyword2) ||
+                trim(substr($strCode,8,255)) == strtolower($objItem->Product->WebKeyword3) )              
                 ) 
-            { $boolReturn = $this->IsExcept() ? false : true; error_log("bool is now ".$boolReturn); }
+            $boolReturn = $this->IsExcept() ? false : true;
             
         }  
-		error_log("here3");
 		  
 		  if (_xls_array_search_begin($objItem->Code, $arrCode))
 			$boolReturn = $this->IsExcept() ? false : true;
-		error_log("here4");
 
 		return $boolReturn; 
 	}

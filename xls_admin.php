@@ -3448,7 +3448,7 @@
 	* see class xlsws_admin_generic_edit_form for further specs
 	*/		
 	
-	class xlsws_admin_promo extends xlsws_admin_generic_edit_form{
+		class xlsws_admin_promo extends xlsws_admin_generic_edit_form{
 		protected function Form_Create(){
 			$this->arrTabs = $GLOBALS['arrPaymentTabs'];
 			$this->currentTab = 'promo';
@@ -3460,7 +3460,11 @@
 			$this->qqn = QQN::PromoCode();
 
 			$this->arrFields = array();
-
+		
+			$this->arrFields['Enabled'] = array('Name' => 'Active');
+			$this->arrFields['Enabled']['Field'] = new QCheckBox($this); 	
+			$this->arrFields['Enabled']['DisplayFunc'] = "RenderCheck";
+			$this->arrFields['Enabled']['Width'] = 20;	
 			
 			$this->arrFields['Code'] = array('Name' => 'Promo Code');
 			$this->arrFields['Code']['Field'] = new XLSTextBox($this);
@@ -3482,17 +3486,22 @@
 			$this->arrFields['ValidFrom'] = array('Name' => 'Valid from<br>(yyyy-mm-dd)');
 			$this->arrFields['ValidFrom']['Field'] = new XLSTextBox($this);
 			$this->arrFields['ValidFrom']['Field']->Required = true;
-			$this->arrFields['ValidFrom']['Width'] = 80;
+			$this->arrFields['ValidFrom']['Width'] = 90;
 			
 			$this->arrFields['ValidUntil'] = array('Name' => 'Valid until<br>(yyyy-mm-dd)');
 			$this->arrFields['ValidUntil']['Field'] = new XLSTextBox($this);
 			$this->arrFields['ValidUntil']['Field']->Required = true;
-			$this->arrFields['ValidUntil']['Width'] = 80;	
+			$this->arrFields['ValidUntil']['Width'] = 90;	
 			
-			$this->arrFields['Lscodes'] = array('Name' => 'Restrictions<br>(comma delimited)');
-			$this->arrFields['Lscodes']['Field'] = new XLSTextBox($this);
-			$this->arrFields['Lscodes']['Field']->Required = false;
-			$this->arrFields['Lscodes']['Width'] = 120;
+			$this->arrFields['Except'] = array('Name' => 'Except');
+			$this->arrFields['Except']['Field'] = new QCheckBox($this); 	
+			$this->arrFields['Except']['DisplayFunc'] = "RenderCheck";
+			$this->arrFields['Except']['Width'] = 20;	
+
+			$this->arrFields['Lscodes'] = array('Name' => 'Product<br>Restrictions');
+			$this->arrFields['Lscodes']['Field'] = new XLSTextBox($this);	
+			$this->arrFields['Lscodes']['Width'] = 90;
+			$this->arrFields['Lscodes']['DisplayFunc'] = "RenderPromoFilters";
 
 			$this->arrFields['QtyRemaining'] = array('Name' => '# Uses Remain<br>(blank = unlimited)');
 			$this->arrFields['QtyRemaining']['Field'] = new XLSTextBox($this); 	
@@ -3504,7 +3513,7 @@
 			$this->arrFields['Threshold']['Field'] = new XLSTextBox($this); 	
 			$this->arrFields['Threshold']['Width'] = "100";
 			$this->arrFields['Threshold']['DisplayFunc'] = "RenderThreshold";
-			$this->arrFields['Threshold']['Width'] = 60;
+			$this->arrFields['Threshold']['Width'] = 40;
 			
 
 						
@@ -3514,6 +3523,11 @@
 
         protected function RenderType($intType) {
             return PromoCodeType::ToString($intType);
+		}
+		
+		protected function RenderCheck($intType) {
+            if ($intType==1) return "✓";
+            else return "";
 		}
 		
 		protected function RenderQtyRemaining($intQtyRemaining){			
@@ -3532,6 +3546,12 @@
 			
 		}
 
+		protected function RenderPromoFilters($item){
+			if (strlen($item)>0)
+				return "<b>Applied</b>";
+			else
+				return "";
+		}
 
 		protected function btnEdit_Click($strFormId, $strControlId, $strParameter){
 			parent::btnEdit_Click($strFormId, $strControlId, $strParameter);
