@@ -148,6 +148,9 @@ class PromoCode extends PromoCodeGen {
 			case 'Active':
 				return $this->IsActive();
 
+			case 'Enabled':
+				return $this->IsEnabled();
+
 			case 'Except':
 				return $this->IsExcept();
 

@@ -3461,7 +3461,7 @@
 
 			$this->arrFields = array();
 		
-			$this->arrFields['Enabled'] = array('Name' => 'Active');
+			$this->arrFields['Enabled'] = array('Name' => 'Enabled');
 			$this->arrFields['Enabled']['Field'] = new QCheckBox($this); 	
 			$this->arrFields['Enabled']['DisplayFunc'] = "RenderCheck";
 			$this->arrFields['Enabled']['Width'] = 20;	

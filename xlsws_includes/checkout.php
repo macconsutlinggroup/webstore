@@ -670,6 +670,12 @@ class xlsws_checkout extends xlsws_index {
 	protected function validatePromoCode(
 		$strFormId, $strControlId, $strParameter) {
 
+		if ($this->cart->FkPromoId > 0) {
+			$this->DisplayPromoErrWidget(_sp('A Promo Code has already' .
+				' been applied to this order'));
+			return;
+		}
+		
 		$bolPromoApplied = false;
 		$objPromoCode = PromoCode::LoadByCode($this->txtPromoCode->Text);
 		$discountType = PromoCodeType::Flat;
@@ -679,9 +685,8 @@ class xlsws_checkout extends xlsws_index {
 			return;
 		}
 
-		if ($this->cart->FkPromoId > 0) {
-			$this->DisplayPromoErrWidget(_sp('A Promo Code has already' .
-				' been applied to this order'));
+		if (!$objPromoCode->Enabled) {
+			$this->DisplayPromoErrWidget(_sp('Invalid Promo Code'));
 			return;
 		}
 
