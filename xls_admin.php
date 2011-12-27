@@ -1082,13 +1082,7 @@
 		 	
 		}
 		 
-		public function btnDefine($strFormId, $strControlId, $strParameter){
-
-		 		QApplication::ExecuteJavaScript("alert('testing this');");
-
-
-		}
-				 
+		 
 		public function load_module_obj(){
 			$this->objParentObject->loadModules();
 	
@@ -2677,20 +2671,13 @@
 				
 					if(isset($this->arrFields[$field]['Width']))
 						$this->arrFields[$field]['Field']->Width = $this->arrFields[$field]['Width'];
-					if($field=="1Lscodes")
+					if($field=="Lscodes")
 						{
 							$this->arrFields[$field]['Field']->Text = "<a href='#' id='promodefine'>Edit Restrictions</a>";
 							$this->arrFields[$field]['Field']->HtmlEntities = false;
 						}
 
-					if ($this->arrFields[$field]['Field'] instanceOf QButton || $this->arrFields[$field]['Field'] instanceOf QLinkButton)
-					{ 
-						error_log("button here"); 
-						return $this->arrFields[$field]['Field']->Render(true); 
-					
-					} 
-					else return $this->arrFields[$field]['Field']->RenderWithError(false);
-
+					return $this->arrFields[$field]['Field']->RenderWithError(false);
 				}else{
 				
 				if(isset($this->arrFields[$field]['DisplayFunc'])){
@@ -3517,10 +3504,8 @@
 			$this->arrFields['ValidUntil']['Width'] = 90;	
 			
 			$this->arrFields['Lscodes'] = array('Name' => 'Product<br>Restrictions');
-			$this->arrFields['Lscodes']['Field'] = new QLinkButton($this);	
-			$this->arrFields['Lscodes']['Field']->Text = "Click Me";
-			$this->arrFields['Lscodes']['Field']->LinkUrl = "http://www.apple.com";
-		 	//$this->arrFields['Lscodes']['Field']->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnSave_click'));
+			$this->arrFields['Lscodes']['Field'] = new QLabel($this);	
+			$this->arrFields['Lscodes']['Width'] = 450;
 			$this->arrFields['Lscodes']['DisplayFunc'] = "RenderPromoFilters";
 
 			$this->arrFields['QtyRemaining'] = array('Name' => '# Uses Remain<br>(blank = unlimited)');
