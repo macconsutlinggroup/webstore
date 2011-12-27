@@ -89,8 +89,8 @@ class PromoCode extends PromoCodeGen {
 
         foreach($arrCode as $strCode) {
             $strCode=strtolower($strCode);
-            error_log("comapring ".substr($strCode, 0,8));
-            if (substr($strCode, 0,7) == "family:" && 
+  
+             if (substr($strCode, 0,7) == "family:" && 
                 trim(substr($strCode,7,255)) == strtolower($objItem->Product->Family)) 
             $boolReturn = $this->IsExcept() ? false : true; 
             
@@ -104,7 +104,8 @@ class PromoCode extends PromoCodeGen {
                 trim(substr($strCode,8,255)) == strtolower($objItem->Product->WebKeyword3) )              
                 ) 
             $boolReturn = $this->IsExcept() ? false : true;
-            
+
+           
         }  
 		  
 		  if (_xls_array_search_begin($objItem->Code, $arrCode))
@@ -112,6 +113,30 @@ class PromoCode extends PromoCodeGen {
 
 		return $boolReturn; 
 	}
+	
+	public function IsShippingAffected($objItem) {
+		$arrCode = $this->LsCodeArray;
+		$strChosenShipper = "";
+
+		//We normally return true if it's a match. If this code uses Except, then the logic is reversed
+		$boolReturn = false;
+		if ($this->IsExcept()) $boolReturn = true;
+
+        foreach($arrCode as $strCode) {
+            $strCode=strtolower($strCode);
+
+            if (substr($strCode, 0,9) == "shipping:" && (
+                trim(substr($strCode,9,255)) == $strChosenShipper ||
+                 trim(substr($strCode,9,255)) == "all" ||
+                 trim(substr($strCode,9,255)) == "*" )
+                 )           
+            $boolReturn = $this->IsExcept() ? false : true;
+            
+        }  
+		  
+		return $boolReturn; 
+	}
+
 
 	/**
 	 * Load a PromoCode from code
