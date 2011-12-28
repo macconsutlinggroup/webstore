@@ -859,8 +859,6 @@
 			$this->configPnls['taxship']->Info = _sp('This is used to enable tax calculations on shipping charges.');
 			
 
-
-
 		}
 		
 		
@@ -1224,6 +1222,8 @@
 			
             $this->build_list();
 			
+			$this->HelperRibbon = "To activate a shipping module, turn it to ON, then click the Gear icon to configure options. You must click Save to fully activate a module.";
+
 		}
 		
 		
@@ -1550,8 +1550,7 @@
 						continue;
 					}
 					
-					if(!$class->check())
-						continue;
+					
 					
 					if(method_exists($class , 'admin_name'))
 						$name = $class->admin_name();

@@ -116,7 +116,32 @@ class free_shipping extends xlsws_class_shipping {
 		return 0;
 	}
 
+	/**
+	 * Check if the module is valid or not.
+	 * Returning false here will exclude the module from checkout page
+	 * Can be used for tests against cart conditions
+	 *
+	 * @return boolean
+	 */
 	public function check() {
+	
+		$vals = $this->getConfigValues(get_class($this));
+		
+		//Check possible scenarios why we would not offer free shipping
+		if ($vals['startdate']>date("Y-m-d")) return false;
+		if ($vals['enddate']<date("Y-m-d")) return false;
+		if (isset($vals['promocode']))
+		{ 
+			if ($cart->FkPromoId > 0)
+			{
+				$pcode = PromoCode::Load($cart->FkPromoId);
+				if ($pcode->Code == $vals['promocode']) return true;
+				
+			}
+			return false;
+			
+		}
+	
 		return true;
 	}
 }
