@@ -1222,7 +1222,9 @@
 			
             $this->build_list();
 			
-			$this->HelperRibbon = "To activate a shipping module, turn it to ON, then click the Gear icon to configure options. You must click Save to fully activate a module.";
+			if ($this->currentModuleType != "sidebar")
+				$this->HelperRibbon = "To activate a new ".$this->currentModuleType." module, turn it to ON, then click the Gear icon to configure options. You must click Save to fully activate a module.";
+				
 
 		}
 		

@@ -76,6 +76,13 @@ class PromoCode extends PromoCodeGen {
 			return true;
 		return false;
 	}
+	
+	
+	protected function IsShipping() {
+		if ($this->LsCodeArray[0]=="shipping:")
+			return true;
+		return false;
+	}
 
 	public function IsProductAffected($objItem) {
 		$arrCode = $this->LsCodeArray;
@@ -114,30 +121,7 @@ class PromoCode extends PromoCodeGen {
 		return $boolReturn; 
 	}
 	
-	public function IsShippingAffected($objItem) {
-		$arrCode = $this->LsCodeArray;
-		$strChosenShipper = "";
-
-		//We normally return true if it's a match. If this code uses Except, then the logic is reversed
-		$boolReturn = false;
-		if ($this->IsExcept()) $boolReturn = true;
-
-        foreach($arrCode as $strCode) {
-            $strCode=strtolower($strCode);
-
-            if (substr($strCode, 0,9) == "shipping:" && (
-                trim(substr($strCode,9,255)) == $strChosenShipper ||
-                 trim(substr($strCode,9,255)) == "all" ||
-                 trim(substr($strCode,9,255)) == "*" )
-                 )           
-            $boolReturn = $this->IsExcept() ? false : true;
-            
-        }  
-		  
-		return $boolReturn; 
-	}
-
-
+	
 	/**
 	 * Load a PromoCode from code
 	 * @param string $strCode
@@ -149,6 +133,37 @@ class PromoCode extends PromoCodeGen {
 		);
 	}
 
+	/**
+	 * Load a PromoCode from code for Shipping Promo Code
+	 * Separated from other types of promo codes
+	 * @param string $strCode
+	 * @return PromoCode
+	 */
+	public static function LoadByCodeShipping($strCode) {
+		return PromoCode::QuerySingle(
+			QQ::AndCondition(
+				QQ::Equal(QQN::PromoCode()->Code, $strCode),
+				QQ::Equal(QQN::PromoCode()->Lscodes, "shipping:")
+				)
+		);						
+	}
+	
+	/**
+	 * Delete all Shipping PromoCodes
+	 * @return void
+	 */
+	public static function DeleteShippingPromoCodes() {
+			// Get the Database Object for this Class
+			$objDatabase = PromoCode::GetDatabase();
+
+			// Perform the Query
+			$objDatabase->NonQuery('
+				DELETE FROM
+					`xlsws_promo_code`
+					WHERE `lscodes` = "shipping:"');
+		}
+
+	
 	/**
 	 * Load a PromoCode from cart id
 	 * @param string $intCart
@@ -187,6 +202,10 @@ class PromoCode extends PromoCodeGen {
 
 			case 'Expired':
 				return $this->IsExpired();
+				
+			case 'Shipping':
+				return $this->IsShipping();
+				
 
 			case 'Threshold':
 				return $this->strThreshold;

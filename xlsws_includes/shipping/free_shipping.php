@@ -64,6 +64,11 @@ class free_shipping extends xlsws_class_shipping {
 		$ret['promocode']->Text = '';
 		$ret['promocode']->ToolTip = _sp('When used, Free Shipping option will only appear with valid code entered.');
 
+		$ret['qty_remaining'] = new XLSTextBox($objParent);
+		$ret['qty_remaining']->Name = _sp('Optional Promo Code Qty (blank=unlimited)');
+		$ret['qty_remaining']->Text = '';
+		$ret['qty_remaining']->ToolTip = _sp('If using Promo Code, how many times can this be used (blank=unlimited).');
+
 		$ret['startdate'] = new XLSTextBox($objParent);
 		$ret['startdate']->Name = _sp('Optional Start Date (YYYY-MM-DD)');
 		$ret['startdate']->Text = '';
@@ -73,12 +78,6 @@ class free_shipping extends xlsws_class_shipping {
 		$ret['enddate']->Name = _sp('Optional End Date (YYYY-MM-DD)');
 		$ret['enddate']->Text = '';
 		$ret['enddate']->ToolTip = _sp('When used, Free Shipping option will only appear up to this date. May be used with Promo Code.');
-
-		$ret['promocode'] = new XLSTextBox($objParent);
-		$ret['promocode']->Name = _sp('Optional Promo Code');
-		$ret['promocode']->Text = '';
-		$ret['promocode']->ToolTip = _sp('When used, Free Shipping option will only appear with valid code entered.');
-
 
 		$ret['product'] = new XLSTextBox($objParent);
 		$ret['product']->Name = _sp('LightSpeed Product Code');
@@ -96,6 +95,12 @@ class free_shipping extends xlsws_class_shipping {
 			return false;
 		}
 
+
+
+		//Because our Free Shipping needs to also have an entry in the Promo Code table,
+		//sync it here
+		$this->syncPromoCode($fields);
+		
 		return true;
 	}
 
@@ -130,10 +135,10 @@ class free_shipping extends xlsws_class_shipping {
 		//Check possible scenarios why we would not offer free shipping
 		if ($vals['startdate']>date("Y-m-d")) return false;
 		if ($vals['enddate']<date("Y-m-d")) return false;
-		if (isset($vals['promocode']))
-		{ 
-			if ($cart->FkPromoId > 0)
-			{
+
+		if (strlen($vals['promocode'])>0) { 
+			$cart = Cart::GetCart();
+			if ($cart->FkPromoId > 0) {
 				$pcode = PromoCode::Load($cart->FkPromoId);
 				if ($pcode->Code == $vals['promocode']) return true;
 				
@@ -144,4 +149,40 @@ class free_shipping extends xlsws_class_shipping {
 	
 		return true;
 	}
+	
+	
+	private function syncPromoCode($vals) {
+	
+		
+		$config = $this->getConfigValues('free_shipping');
+		
+		if ($config['promocode'] != $vals['promocode']->Text)
+			PromoCode::DeleteShippingPromoCodes();
+
+		if (strlen($vals['promocode']->Text)>0) {
+			$objPromoCode = PromoCode::LoadByCodeShipping($vals['promocode']->Text);
+			if (!$objPromoCode)
+				$objPromoCode = new PromoCode;
+			
+			$objPromoCode->ValidFrom = $vals['startdate']->Text;
+			$objPromoCode->ValidUntil = $vals['enddate']->Text;
+			$objPromoCode->Code = $vals['promocode']->Text;
+			$objPromoCode->Enabled = 1;
+			$objPromoCode->Except = 0;
+			$objPromoCode->Lscodes = "shipping:";
+			$objPromoCode->Amount = 100;
+			$objPromoCode->Type = 0;
+			$objPromoCode->Threshold = 0;
+			if ($vals['qty_remaining']->Text=='')
+				$objPromoCode->QtyRemaining = -1;
+			else
+				$objPromoCode->QtyRemaining = $vals['qty_remaining']->Text;
+			
+			$objPromoCode->Save();
+	
+		}
+	
+	}
+	
+	
 }

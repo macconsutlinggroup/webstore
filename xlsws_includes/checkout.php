@@ -676,6 +676,7 @@ class xlsws_checkout extends xlsws_index {
 			return;
 		}
 		
+		/*
 		//A free shipping promo code will get checked first
 		$moduleRec = Modules::LoadByFileType("free_shipping.php",'shipping');
 		if($moduleRec) {
@@ -689,7 +690,7 @@ class xlsws_checkout extends xlsws_index {
 				
 		
 		}
-		
+		*/
 		
 		
 		$bolPromoApplied = false;
@@ -725,6 +726,15 @@ class xlsws_checkout extends xlsws_index {
 			return;
 		}
 
+		if ($objPromoCode->Shipping) {
+			$this->cart->FkPromoId = $objPromoCode->Rowid;
+			$bolPromoApplied = $this->cart->UpdatePromoCode(true);
+			$this->DisplayPromoErrWidget(_sp('Free Shipping Activated!'));
+			$this->setupShipping();
+			return;
+		}
+		
+		
 		$this->cart->FkPromoId = $objPromoCode->Rowid;
 		$bolPromoApplied = $this->cart->UpdatePromoCode(true);
 
