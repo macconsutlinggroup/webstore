@@ -227,6 +227,7 @@
 		protected $pxyTabClick;
 		protected $pxyPanelClick;
 		
+		public $HelperRibbon = ""; //top ribbon for additional information
 		
 		protected $arrTabs;
 		protected $arrPanels;
@@ -353,6 +354,7 @@
 		
         public $Info = ""; //the tooltip info text
 		
+
         public $special_css_class = ""; //any special CSS class you wish to use for this section
 		
         // Customize Look/Feel
@@ -1817,6 +1819,8 @@
 		 	
 		 	$this->strTemplate = adminTemplate('cpage_panel.tpl.php');
 		 	
+						
+	
 		 	
 		 }
 		 
@@ -1968,7 +1972,8 @@
 			
 			$this->listPages();
 			
-			
+			$this->HelperRibbon = "Looking to override your default home page? Create a custom page using the key \"index\" which will be shown instead.";
+
 		}
 		
 	
@@ -3515,7 +3520,7 @@
 			$this->arrFields['Threshold']['DisplayFunc'] = "RenderThreshold";
 			$this->arrFields['Threshold']['Width'] = 40;
 			
-
+			$this->HelperRibbon = "Need help setting up Promo Codes? Click to read our <a href='http://www.lightspeedretail.com'><u>online configuration guide</u></a> we have available! Please note the Free Shipping promo code is configured separately within the Free Shipping module.";
 						
 			parent::Form_Create();
 

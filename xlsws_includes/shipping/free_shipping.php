@@ -58,6 +58,28 @@ class free_shipping extends xlsws_class_shipping {
 		$ret['rate']->Text = '0';
 		$ret['rate']->ToolTip = _sp('The amount the subtotal must be before free shipping is considered');
 
+
+		$ret['promocode'] = new XLSTextBox($objParent);
+		$ret['promocode']->Name = _sp('Optional Promo Code');
+		$ret['promocode']->Text = '';
+		$ret['promocode']->ToolTip = _sp('When used, Free Shipping option will only appear with valid code entered.');
+
+		$ret['startdate'] = new XLSTextBox($objParent);
+		$ret['startdate']->Name = _sp('Optional Start Date (YYYY-MM-DD)');
+		$ret['startdate']->Text = '';
+		$ret['startdate']->ToolTip = _sp('When used, Free Shipping option will only appear as of this date. May be used with Promo Code.');
+
+		$ret['enddate'] = new XLSTextBox($objParent);
+		$ret['enddate']->Name = _sp('Optional End Date (YYYY-MM-DD)');
+		$ret['enddate']->Text = '';
+		$ret['enddate']->ToolTip = _sp('When used, Free Shipping option will only appear up to this date. May be used with Promo Code.');
+
+		$ret['promocode'] = new XLSTextBox($objParent);
+		$ret['promocode']->Name = _sp('Optional Promo Code');
+		$ret['promocode']->Text = '';
+		$ret['promocode']->ToolTip = _sp('When used, Free Shipping option will only appear with valid code entered.');
+
+
 		$ret['product'] = new XLSTextBox($objParent);
 		$ret['product']->Name = _sp('LightSpeed Product Code');
 		$ret['product']->Required = true;
