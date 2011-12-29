@@ -83,6 +83,7 @@ class free_shipping extends xlsws_class_shipping {
 		$ret['product']->Name = _sp('LightSpeed Product Code');
 		$ret['product']->Required = true;
 		$ret['product']->Text = 'SHIPPING';
+		$ret['product']->ToolTip = _sp('Must match a Product Code exactly that exists in LightSpeed for shipping. Case sensitive.');
 
 		return $ret;
 	}
@@ -94,8 +95,6 @@ class free_shipping extends xlsws_class_shipping {
 			QApplication::ExecuteJavaScript("alert('Rate must be a number')");
 			return false;
 		}
-
-
 
 		//Because our Free Shipping needs to also have an entry in the Promo Code table,
 		//sync it here
@@ -133,8 +132,10 @@ class free_shipping extends xlsws_class_shipping {
 		$vals = $this->getConfigValues(get_class($this));
 		
 		//Check possible scenarios why we would not offer free shipping
-		if ($vals['startdate']>date("Y-m-d")) return false;
-		if ($vals['enddate']<date("Y-m-d")) return false;
+		if (strlen($vals['startdate'])>0 && $vals['startdate'] != "0000-00-00")
+			if ($vals['startdate']>date("Y-m-d")) return false;
+		if (strlen($vals['enddate'])>0 && $vals['enddate'] != "0000-00-00")
+			if ($vals['enddate']<date("Y-m-d")) return false;
 
 		if (strlen($vals['promocode'])>0) { 
 			$cart = Cart::GetCart();
@@ -163,6 +164,9 @@ class free_shipping extends xlsws_class_shipping {
 			$objPromoCode = PromoCode::LoadByCodeShipping($vals['promocode']->Text);
 			if (!$objPromoCode)
 				$objPromoCode = new PromoCode;
+			
+			if ($vals['startdate']->Text="") 	$vals['startdate']->Text="0000-00-00";
+			if ($vals['enddate']->Text="") 		$vals['enddate']->Text="0000-00-00";
 			
 			$objPromoCode->ValidFrom = $vals['startdate']->Text;
 			$objPromoCode->ValidUntil = $vals['enddate']->Text;
