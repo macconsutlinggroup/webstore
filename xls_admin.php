@@ -2458,10 +2458,11 @@
 		protected $default_sort_direction = 0;
 		
 		
-		// These needs to be defined
+		// These need to be defined
 		protected $className;
 		protected $blankObj;
 		protected $qqn;
+		protected $qqnot;
 		
 		
 		protected $txtSearch;
@@ -2581,16 +2582,22 @@
 
 		protected function dtgItems_Bind() {
 
-			
-			
+	//ToDo: need to mask out shipping		
+			$cond = array(); 
+			if ($this->className=="PromoCodex")
+				$cond[] = new QQNotLike($this->qqn->$field , 'shipping:,%');
+				error_log(print_r($cond,true));
 			if(($this->txtSearch->Text != '') && ($this->txtSearch->Text != $this->helperText)){
-				$cond = array();
+
 				foreach($this->arrFields as $field=>$properties){
 					if(isset($properties['NoSearch']))
 						continue;
 					$cond[] = new QQXLike($this->qqn->$field , $this->txtSearch->Text);
 				}
-				
+			
+			}
+			
+			if(count($cond)>0){		
 				$this->dtgItems->TotalItemCount = $this->blankObj->QueryCount(QQ::OrCondition($cond));
 				$objItemsArray = $this->dtgItems->DataSource = $this->blankObj->QueryArray(QQ::OrCondition($cond) , QQ::Clause(
 	                $this->dtgItems->OrderByClause,
