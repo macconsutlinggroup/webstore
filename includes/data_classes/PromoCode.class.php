@@ -66,13 +66,13 @@ class PromoCode extends PromoCodeGen {
 	}
 
 	protected function IsStarted() {
-		if (date("Y-m-d")>=date("Y-m-d",strtotime($this->strValidFrom)))
+		if ($this->strValidFrom=="" || date("Y-m-d")>=date("Y-m-d",strtotime($this->strValidFrom)))
 			return true;
 		return false;
 	}
 
 	protected function IsExpired() {
-		if (date("Y-m-d",strtotime($this->strValidUntil))<date("Y-m-d"))
+		if ($this->strValidUntil != "" && date("Y-m-d",strtotime($this->strValidUntil))<date("Y-m-d"))
 			return true;
 		return false;
 	}

@@ -72,13 +72,29 @@ class free_shipping extends xlsws_class_shipping {
 		$ret['startdate'] = new XLSTextBox($objParent);
 		$ret['startdate']->Name = _sp('Optional Start Date (YYYY-MM-DD)');
 		$ret['startdate']->Text = '';
-		$ret['startdate']->ToolTip = _sp('When used, Free Shipping option will only appear as of this date. May be used with Promo Code.');
+		$ret['startdate']->ToolTip = _sp('When used, Free Shipping option will only appear as of this date. May be used with Promo Code or without.');
 
 		$ret['enddate'] = new XLSTextBox($objParent);
 		$ret['enddate']->Name = _sp('Optional End Date (YYYY-MM-DD)');
 		$ret['enddate']->Text = '';
-		$ret['enddate']->ToolTip = _sp('When used, Free Shipping option will only appear up to this date. May be used with Promo Code.');
+		$ret['enddate']->ToolTip = _sp('When used, Free Shipping option will only appear up to this date. May be used with Promo Code or without.');
 
+		$ret['restrictions'] = new XLSTextBox($objParent);
+		$ret['restrictions']->Name = _sp('Optional Product Restrictions');
+		$ret['restrictions']->Text = '';
+		$ret['restrictions']->ToolTip = _sp('Use same syntax as Promo Codes. May be used with Promo Code or without.');
+
+		$ret['except'] = new XLSListBox($objParent);
+		$ret['except']->Name = _sp('Product Restrictions are');
+		$ret['except']->ToolTip = _sp('Are your restrictions for including these products, or everything but these products?');
+		$ret['except']->RemoveAllItems();
+
+  		$ret['except']->AddItem(_sp("Only products that meet the set criteria") , 0);
+  		$ret['except']->AddItem(_sp("All products except those that meet the set criteria") , 1);
+  			
+  		//$ret['except']->SelectedValue = $config->Value;
+  		
+              		
 		$ret['product'] = new XLSTextBox($objParent);
 		$ret['product']->Name = _sp('LightSpeed Product Code');
 		$ret['product']->Required = true;
@@ -151,7 +167,8 @@ class free_shipping extends xlsws_class_shipping {
 		return true;
 	}
 	
-	
+
+
 	private function syncPromoCode($vals) {
 	
 		
@@ -164,19 +181,16 @@ class free_shipping extends xlsws_class_shipping {
 			$objPromoCode = PromoCode::LoadByCodeShipping($vals['promocode']->Text);
 			if (!$objPromoCode)
 				$objPromoCode = new PromoCode;
-			
-			if ($vals['startdate']->Text="") 	$vals['startdate']->Text="0000-00-00";
-			if ($vals['enddate']->Text="") 		$vals['enddate']->Text="0000-00-00";
-			
+						
 			$objPromoCode->ValidFrom = $vals['startdate']->Text;
 			$objPromoCode->ValidUntil = $vals['enddate']->Text;
 			$objPromoCode->Code = $vals['promocode']->Text;
-			$objPromoCode->Enabled = 1;
-			$objPromoCode->Except = 0;
+			$objPromoCode->Enabled = 1; 
+			$objPromoCode->Except = $vals['except']->SelectedValue;
 			$objPromoCode->Lscodes = "shipping:";
-			$objPromoCode->Amount = 100;
+			$objPromoCode->Amount = 0;
 			$objPromoCode->Type = 0;
-			$objPromoCode->Threshold = 0;
+			$objPromoCode->Threshold = ($vals['threshold']->Text == "" ? "0" : $vals['threshold']->Text);
 			if ($vals['qty_remaining']->Text=='')
 				$objPromoCode->QtyRemaining = -1;
 			else
