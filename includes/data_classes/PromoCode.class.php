@@ -143,7 +143,7 @@ class PromoCode extends PromoCodeGen {
 		return PromoCode::QuerySingle(
 			QQ::AndCondition(
 				QQ::Equal(QQN::PromoCode()->Code, $strCode),
-				QQ::Equal(QQN::PromoCode()->Lscodes, "shipping:")
+				QQ::Like(QQN::PromoCode()->Lscodes, "shipping:,%")
 				)
 		);						
 	}
@@ -160,7 +160,7 @@ class PromoCode extends PromoCodeGen {
 			$objDatabase->NonQuery('
 				DELETE FROM
 					`xlsws_promo_code`
-					WHERE `lscodes` = "shipping:"');
+					WHERE `lscodes` LIKE "shipping:,%"');
 		}
 
 	

@@ -59,6 +59,16 @@ class free_shipping extends xlsws_class_shipping {
 		$ret['rate']->ToolTip = _sp('The amount the subtotal must be before free shipping is considered');
 
 
+		$ret['startdate'] = new XLSTextBox($objParent);
+		$ret['startdate']->Name = _sp('Optional Start Date (YYYY-MM-DD)');
+		$ret['startdate']->Text = '';
+		$ret['startdate']->ToolTip = _sp('When used, Free Shipping option will only appear as of this date. May be used with Promo Code or without.');
+
+		$ret['enddate'] = new XLSTextBox($objParent);
+		$ret['enddate']->Name = _sp('Optional End Date (YYYY-MM-DD)');
+		$ret['enddate']->Text = '';
+		$ret['enddate']->ToolTip = _sp('When used, Free Shipping option will only appear up to this date. May be used with Promo Code or without.');
+		
 		$ret['promocode'] = new XLSTextBox($objParent);
 		$ret['promocode']->Name = _sp('Optional Promo Code');
 		$ret['promocode']->Text = '';
@@ -69,15 +79,7 @@ class free_shipping extends xlsws_class_shipping {
 		$ret['qty_remaining']->Text = '';
 		$ret['qty_remaining']->ToolTip = _sp('If using Promo Code, how many times can this be used (blank=unlimited).');
 
-		$ret['startdate'] = new XLSTextBox($objParent);
-		$ret['startdate']->Name = _sp('Optional Start Date (YYYY-MM-DD)');
-		$ret['startdate']->Text = '';
-		$ret['startdate']->ToolTip = _sp('When used, Free Shipping option will only appear as of this date. May be used with Promo Code or without.');
 
-		$ret['enddate'] = new XLSTextBox($objParent);
-		$ret['enddate']->Name = _sp('Optional End Date (YYYY-MM-DD)');
-		$ret['enddate']->Text = '';
-		$ret['enddate']->ToolTip = _sp('When used, Free Shipping option will only appear up to this date. May be used with Promo Code or without.');
 
 		$ret['restrictions'] = new XLSTextBox($objParent);
 		$ret['restrictions']->Name = _sp('Optional Product Restrictions');
@@ -96,7 +98,7 @@ class free_shipping extends xlsws_class_shipping {
   		
               		
 		$ret['product'] = new XLSTextBox($objParent);
-		$ret['product']->Name = _sp('LightSpeed Product Code');
+		$ret['product']->Name = _sp('Matching LightSpeed Product Code (case sensitive)');
 		$ret['product']->Required = true;
 		$ret['product']->Text = 'SHIPPING';
 		$ret['product']->ToolTip = _sp('Must match a Product Code exactly that exists in LightSpeed for shipping. Case sensitive.');
@@ -187,7 +189,7 @@ class free_shipping extends xlsws_class_shipping {
 			$objPromoCode->Code = $vals['promocode']->Text;
 			$objPromoCode->Enabled = 1; 
 			$objPromoCode->Except = $vals['except']->SelectedValue;
-			$objPromoCode->Lscodes = "shipping:";
+			$objPromoCode->Lscodes = "shipping:,".$vals['restrictions']->Text;
 			$objPromoCode->Amount = 0;
 			$objPromoCode->Type = 0;
 			$objPromoCode->Threshold = ($vals['threshold']->Text == "" ? "0" : $vals['threshold']->Text);
