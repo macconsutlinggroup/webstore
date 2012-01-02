@@ -341,11 +341,8 @@ class Cart extends CartGen {
 			//If this is for shipping, we need to make sure all items in the cart qualify
 		
 			$bolApplied = true;	
-			foreach ($arrSorted as $objItem) { 
-			 if (!$objPromoCode->IsProductAffected($objItem)) $bolApplied=false;
-			}
-			if ($objPromoCode->Except) //reverse logic
-				$bolApplied==false ? $bolApplied=true : $bolApplied=false;
+			foreach ($arrSorted as $objItem) 
+				if (!$objPromoCode->IsProductAffected($objItem)) $bolApplied=false;
 
 			return $bolApplied;
 			

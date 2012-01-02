@@ -676,22 +676,6 @@ class xlsws_checkout extends xlsws_index {
 			return;
 		}
 		
-		/*
-		//A free shipping promo code will get checked first
-		$moduleRec = Modules::LoadByFileType("free_shipping.php",'shipping');
-		if($moduleRec) {
-			
-			$arrFreeShippingVals = $moduleRec->GetConfigValues();
-			if (isset($arrFreeShippingVals['promocode']))
-				if ($arrFreeShippingVals['promocode']==$this->txtPromoCode->Text) {
-				//Set up free shipping -- do we need the code in the promo_codes table too?
-				
-				}
-				
-		
-		}
-		*/
-		
 		
 		$bolPromoApplied = false;
 		$objPromoCode = PromoCode::LoadByCode($this->txtPromoCode->Text);
@@ -734,7 +718,10 @@ class xlsws_checkout extends xlsws_index {
 				$this->DisplayPromoErrWidget(_sp('Items in your cart do not qualify for free shipping.'));
 				$this->cart->FkPromoId = 0;
 			}
+
+			_xls_stack_add('xlsws_shipping_method','free_shipping.php');
 			$this->setupShipping();
+
 			return;
 		}
 		

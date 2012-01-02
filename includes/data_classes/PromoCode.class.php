@@ -92,32 +92,34 @@ class PromoCode extends PromoCodeGen {
 
 		//We normally return true if it's a match. If this code uses Except, then the logic is reversed
 		$boolReturn = false;
-		if ($this->IsExcept()) $boolReturn = true;
-
+		
         foreach($arrCode as $strCode) {
             $strCode=strtolower($strCode);
   
              if (substr($strCode, 0,7) == "family:" && 
                 trim(substr($strCode,7,255)) == strtolower($objItem->Product->Family)) 
-            $boolReturn = $this->IsExcept() ? false : true; 
+            $boolReturn = true; 
             
             if (substr($strCode, 0,6) == "class:" && 
                 trim(substr($strCode,6,255)) == strtolower($objItem->Product->ClassName)) 
-             $boolReturn = $this->IsExcept() ? false : true;
+             $boolReturn = true; 
              
             if (substr($strCode, 0,8) == "keyword:" && (
                 trim(substr($strCode,8,255)) == strtolower($objItem->Product->WebKeyword1) ||
                 trim(substr($strCode,8,255)) == strtolower($objItem->Product->WebKeyword2) ||
                 trim(substr($strCode,8,255)) == strtolower($objItem->Product->WebKeyword3) )              
                 ) 
-            $boolReturn = $this->IsExcept() ? false : true;
+            $boolReturn = true; 
 
            
         }  
-		  
-		  if (_xls_array_search_begin($objItem->Code, $arrCode))
-			$boolReturn = $this->IsExcept() ? false : true;
 
+		  if (_xls_array_search_begin($objItem->Code, $arrCode))
+			$boolReturn = true; 
+
+		if ($this->IsExcept())
+			$boolReturn = ($boolReturn == true ? false : true);
+		
 		return $boolReturn; 
 	}
 	
