@@ -2582,43 +2582,57 @@
 
 		protected function dtgItems_Bind() {
 
-	//ToDo: need to mask out shipping		
+			$className = $this->className;
 			$cond = array(); 
-			if ($this->className=="PromoCodex")
-				$cond[] = new QQNotLike($this->qqn->$field , 'shipping:,%');
-				error_log(print_r($cond,true));
-			if(($this->txtSearch->Text != '') && ($this->txtSearch->Text != $this->helperText)){
+			
+			if(($this->txtSearch->Text != '') && ($this->txtSearch->Text != $this->helperText)) {
 
-				foreach($this->arrFields as $field=>$properties){
+				foreach($this->arrFields as $field=>$properties) {
+				
 					if(isset($properties['NoSearch']))
 						continue;
 					$cond[] = new QQXLike($this->qqn->$field , $this->txtSearch->Text);
 				}
 			
-			}
+			} else	
+				$cond[] = new QQXLike($this->qqn->Rowid , '');
 			
-			if(count($cond)>0){		
-				$this->dtgItems->TotalItemCount = $this->blankObj->QueryCount(QQ::OrCondition($cond));
-				$objItemsArray = $this->dtgItems->DataSource = $this->blankObj->QueryArray(QQ::OrCondition($cond) , QQ::Clause(
-	                $this->dtgItems->OrderByClause,
-    	            $this->dtgItems->LimitClause
-    		        ));
-			}else{
-				$this->dtgItems->TotalItemCount = $this->blankObj->CountAll();
-				$objItemsArray = $this->dtgItems->DataSource = $this->blankObj->LoadAll(QQ::Clause(
-					$this->dtgItems->OrderByClause,
-					$this->dtgItems->LimitClause
-					));
-			}			
-			
-			
-			
+			if (isset($this->qqnot)) {
 
-			$className = $this->className;
+				$objItemsArray = $this->dtgItems->DataSource = 
+					$this->blankObj->QueryArray(
+						QQ::AndCondition(($this->qqnot),
+						QQ::OrCondition($cond)),
+							QQ::Clause(
+	                					$this->dtgItems->OrderByClause,
+    	            					$this->dtgItems->LimitClause
+    		        		)
+    		        );
+    		   
+    		   
+    		        
+    		  } else {
+    		  
+    		  	$objItemsArray = $this->dtgItems->DataSource = 
+					$this->blankObj->QueryArray(
+						QQ::OrCondition($cond),
+							QQ::Clause(
+	                					$this->dtgItems->OrderByClause,
+    	            					$this->dtgItems->LimitClause
+    		        		)
+    		        );
+    		  
+    		  
+    		  
+    		  }      
+    		        
+
+			$this->dtgItems->TotalItemCount = count($objItemsArray);
+			
 			
 			// If we are editing someone new, we need to add a new (blank) person to the data source
 			if ($this->intEditRowid == -1)
-			array_push($objItemsArray, new $className);
+				array_push($objItemsArray, new $className);
 
 			// Bind the datasource to the datagrid
 			$this->dtgItems->DataSource = $objItemsArray;
@@ -3471,6 +3485,8 @@
 			$this->className = "PromoCode";
 			$this->blankObj = new PromoCode();
 			$this->qqn = QQN::PromoCode();
+			$this->qqnot = QQ::NotLike(QQN::PromoCode()->Lscodes, 'shipping:,%' );
+
 
 			$this->arrFields = array();
 		
@@ -3498,12 +3514,12 @@
 			
 			$this->arrFields['ValidFrom'] = array('Name' => 'Valid from<br>(yyyy-mm-dd)');
 			$this->arrFields['ValidFrom']['Field'] = new XLSTextBox($this);
-			$this->arrFields['ValidFrom']['Field']->Required = true;
+			$this->arrFields['ValidFrom']['DisplayFunc'] = "RenderDateAnytime";
 			$this->arrFields['ValidFrom']['Width'] = 90;
 			
 			$this->arrFields['ValidUntil'] = array('Name' => 'Valid until<br>(yyyy-mm-dd)');
 			$this->arrFields['ValidUntil']['Field'] = new XLSTextBox($this);
-			$this->arrFields['ValidUntil']['Field']->Required = true;
+			$this->arrFields['ValidUntil']['DisplayFunc'] = "RenderDateAnytime";
 			$this->arrFields['ValidUntil']['Width'] = 90;	
 			
 			$this->arrFields['Except'] = array('Name' => 'Except');
@@ -3528,7 +3544,7 @@
 			$this->arrFields['Threshold']['DisplayFunc'] = "RenderThreshold";
 			$this->arrFields['Threshold']['Width'] = 40;
 			
-			$this->HelperRibbon = "Need help setting up Promo Codes? Click to read our <a href='http://www.lightspeedretail.com'><u>online configuration guide</u></a> we have available! Please note the Free Shipping promo code is configured separately within the Free Shipping module.";
+			$this->HelperRibbon = "Need help setting up Promo Codes? Read our configuration guide at http://lightspeedretail.com/training for info. Please note the Free Shipping promo code is configured separately within the Free Shipping module.";
 						
 			parent::Form_Create();
 
@@ -3566,6 +3582,15 @@
 				return "";
 		}
 
+		protected function RenderDateAnytime($item){
+			if (strlen($item)>0)
+				return $item;
+			else
+				return "Anytime";
+		}
+
+
+
 		protected function btnEdit_Click($strFormId, $strControlId, $strParameter){
 			parent::btnEdit_Click($strFormId, $strControlId, $strParameter);
 			if($this->arrFields['QtyRemaining']['Field']->Text=='-1') $this->arrFields['QtyRemaining']['Field']->Text='';
@@ -3574,24 +3599,31 @@
 
 
 		protected function btnSave_Click($strFormId, $strControlId, $strParameter) {
-			if (!preg_match('/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/',$this->arrFields['ValidFrom']['Field']->Text))
-			{
-				$this->arrFields['ValidFrom']['Field']->Text = _sp("Invalid: use yyyy-mm-dd format");
-				return;
-			}
 			
-			if (!preg_match('/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/',$this->arrFields['ValidUntil']['Field']->Text))
-			{
-				$this->arrFields['ValidUntil']['Field']->Text = _sp("Invalid: use yyyy-mm-dd format");
-				return;
-			}
 			
-			$timeconvertedfrom = strtotime($this->arrFields['ValidFrom']['Field']->Text);
-			$timeconvertedto = strtotime($this->arrFields['ValidUntil']['Field']->Text);
-			if ($timeconvertedfrom > $timeconvertedto)
-			{
-				$this->arrFields['ValidUntil']['Field']->Text = _sp("End Date cannot be before Start Date");
-				return;	
+			if ($this->arrFields['ValidFrom']['Field']->Text != '' || 
+					$this->arrFields['ValidUntil']['Field']->Text != '') {
+					
+				if (!preg_match('/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/',$this->arrFields['ValidFrom']['Field']->Text))
+				{
+					$this->arrFields['ValidFrom']['Field']->Text = 'Invalid: use yyyy-mm-dd format';
+					return;
+				}
+				
+				if (!preg_match('/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/',$this->arrFields['ValidUntil']['Field']->Text))
+				{
+					$this->arrFields['ValidUntil']['Field']->Text = 'Invalid: use yyyy-mm-dd format';
+					return;
+				}
+				
+			
+				$timeconvertedfrom = strtotime($this->arrFields['ValidFrom']['Field']->Text);
+				$timeconvertedto = strtotime($this->arrFields['ValidUntil']['Field']->Text);
+				if ($timeconvertedfrom > $timeconvertedto)
+				{
+					$this->arrFields['ValidUntil']['Field']->Text = _sp("End Date cannot be before Start Date");
+					return;	
+				}
 			}
 			if($this->arrFields['Threshold']['Field']->Text=='') $this->arrFields['Threshold']['Field']->Text='0';
 				

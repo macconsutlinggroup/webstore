@@ -337,7 +337,22 @@ class Cart extends CartGen {
 			
 		usort($arrSorted, array('XLSCartItemManager', 'CompareByPrice'));
 
-		foreach ($arrSorted as $objItem) {
+		if ($objPromoCode->Shipping) {
+			//If this is for shipping, we need to make sure all items in the cart qualify
+		
+			$bolApplied = true;	
+			foreach ($arrSorted as $objItem) { 
+			 if (!$objPromoCode->IsProductAffected($objItem)) $bolApplied=false;
+			}
+			if ($objPromoCode->Except) //reverse logic
+				$bolApplied==false ? $bolApplied=true : $bolApplied=false;
+
+			return $bolApplied;
+			
+		}
+
+
+		foreach ($arrSorted as $objItem) { 
 			if (!$objPromoCode->IsProductAffected($objItem))
 				continue;
 

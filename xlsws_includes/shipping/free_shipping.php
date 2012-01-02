@@ -98,7 +98,7 @@ class free_shipping extends xlsws_class_shipping {
   		
               		
 		$ret['product'] = new XLSTextBox($objParent);
-		$ret['product']->Name = _sp('Matching LightSpeed Product Code (case sensitive)');
+		$ret['product']->Name = _sp('LightSpeed Product Code (case sensitive)');
 		$ret['product']->Required = true;
 		$ret['product']->Text = 'SHIPPING';
 		$ret['product']->ToolTip = _sp('Must match a Product Code exactly that exists in LightSpeed for shipping. Case sensitive.');
@@ -106,6 +106,18 @@ class free_shipping extends xlsws_class_shipping {
 		return $ret;
 	}
 
+	public function adminLoadFix($obj) {
+	
+		//Since we may be decrementing the qty_remaining on checkout, put the value here
+		if (strlen($obj->fields['promocode']->Text)>0) {
+			$objPromoCode = PromoCode::LoadByCodeShipping($obj->fields['promocode']->Text);
+			$obj->fields['qty_remaining']->Text=$objPromoCode->QtyRemaining;
+			if ($objPromoCode->QtyRemaining==-1) $obj->fields['qty_remaining']->Text='';
+		}
+		
+		return;
+	}
+	
 	public function check_config_fields($fields) {
 		//check that rate is numeric
 		$val = $fields['rate']->Text;
@@ -190,9 +202,9 @@ class free_shipping extends xlsws_class_shipping {
 			$objPromoCode->Enabled = 1; 
 			$objPromoCode->Except = $vals['except']->SelectedValue;
 			$objPromoCode->Lscodes = "shipping:,".$vals['restrictions']->Text;
-			$objPromoCode->Amount = 0;
-			$objPromoCode->Type = 0;
-			$objPromoCode->Threshold = ($vals['threshold']->Text == "" ? "0" : $vals['threshold']->Text);
+			$objPromoCode->Amount = 0; 
+			$objPromoCode->Type = 1; //Needs to be 0% so UpdatePromoCode() returns valid test 
+			$objPromoCode->Threshold = ($vals['rate']->Text == "" ? "0" : $vals['rate']->Text);
 			if ($vals['qty_remaining']->Text=='')
 				$objPromoCode->QtyRemaining = -1;
 			else

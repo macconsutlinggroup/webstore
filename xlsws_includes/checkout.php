@@ -728,8 +728,12 @@ class xlsws_checkout extends xlsws_index {
 
 		if ($objPromoCode->Shipping) {
 			$this->cart->FkPromoId = $objPromoCode->Rowid;
-			$bolPromoApplied = $this->cart->UpdatePromoCode(true);
-			$this->DisplayPromoErrWidget(_sp('Free Shipping Activated!'));
+			if ($this->cart->UpdatePromoCode(true))
+				$this->DisplayPromoErrWidget(_sp('Free Shipping Activated!'));
+			else {
+				$this->DisplayPromoErrWidget(_sp('Items in your cart do not qualify for free shipping.'));
+				$this->cart->FkPromoId = 0;
+			}
 			$this->setupShipping();
 			return;
 		}
