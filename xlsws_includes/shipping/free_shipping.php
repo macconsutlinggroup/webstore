@@ -167,6 +167,20 @@ class free_shipping extends xlsws_class_shipping {
 		if (strlen($vals['enddate'])>0 && $vals['enddate'] != "0000-00-00")
 			if ($vals['enddate']<date("Y-m-d")) return false;
 
+		if (strlen($vals['restrictions'])>0 && strlen($vals['promocode']) == 0) {	
+			//This is restriction without actually using a code
+			$cart = Cart::GetCart();			
+			$objPromoCode = PromoCode::LoadByCode("shipping:");
+
+			$bolApplied = true;	
+			foreach ($cart->GetCartItemArray() as $objItem)
+				if (!$objPromoCode->IsProductAffected($objItem)) $bolApplied=false;
+
+			return $bolApplied;
+		
+		}
+
+
 		if (strlen($vals['promocode'])>0) { 
 			$cart = Cart::GetCart();
 			if ($cart->FkPromoId > 0) {
@@ -177,11 +191,17 @@ class free_shipping extends xlsws_class_shipping {
 			return false;
 			
 		}
-	
+		
+			
 		return true;
 	}
 	
+	public function remove() {
+	
+		//When we're turning this module off, on our way out the door....
+		PromoCode::DeleteShippingPromoCodes();
 
+	}
 
 	private function syncPromoCode($vals) {
 	
@@ -190,15 +210,20 @@ class free_shipping extends xlsws_class_shipping {
 		
 		if ($config['promocode'] != $vals['promocode']->Text)
 			PromoCode::DeleteShippingPromoCodes();
+		
+		$strPromoCode=$vals['promocode']->Text;
+		if ($strPromoCode=='' && strlen($vals['restrictions']->Text)>0)
+			$strPromoCode="shipping:";
 
-		if (strlen($vals['promocode']->Text)>0) {
-			$objPromoCode = PromoCode::LoadByCodeShipping($vals['promocode']->Text);
+
+		if (strlen($strPromoCode)>0) {
+			$objPromoCode = PromoCode::LoadByCodeShipping($strPromoCode);
 			if (!$objPromoCode)
 				$objPromoCode = new PromoCode;
 						
 			$objPromoCode->ValidFrom = $vals['startdate']->Text;
 			$objPromoCode->ValidUntil = $vals['enddate']->Text;
-			$objPromoCode->Code = $vals['promocode']->Text;
+			$objPromoCode->Code = $strPromoCode;
 			$objPromoCode->Enabled = 1; 
 			$objPromoCode->Except = $vals['except']->SelectedValue;
 			$objPromoCode->Lscodes = "shipping:,".$vals['restrictions']->Text;

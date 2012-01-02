@@ -1406,55 +1406,48 @@
 			// file has to be included for object initiation
 			$this->loadModules();
 			
+
+			$classname = basename($module['filelocation'] , '.php');
 			
-//			if($module['classobj']){
-//				$class = $module['classobj'];
-//			}else{
-				$classname = basename($module['filelocation'] , '.php');
-				
-				if(!class_exists($classname))
-					return;
-				
-					try{
-						$class = new $classname($this);
-					}catch(Exception $e){
-						$class = new $classname;
-					}
-								
-//			}
-				
+			if(!class_exists($classname))
+				return;
 			
-
-
-				if($module['enabled'] == false){
-						
-					$mod = new Modules();
-					$mod->File = $module['file'];
-					$mod->Type = $type;
-					$mod->SortOrder = _dbx_first_cell("SELECT IFNULL(MAX(sort_order),0)+1 FROM xlsws_modules WHERE type = '$type'");
-					$mod->Save();
-						
-					try{
-						$class->install();	// install the module
-					}catch(Exception $e){
-						_xls_log("Error installing module $module[file] . Error Desc: " . $e);
-					}
-						
-						
-				}elseif($module['enabled'] == true){
-					try{
-						$class->remove();	// install the module
-					}catch(Exception $e){
-						_xls_log("Error removing module $module[file] . Error Desc: " . $e);
-					}
-											
-					$mod = Modules::LoadByFileType($module['file'] , $type);
-						
-					if($mod)
-						$mod->Delete();
-						
-
+				try{
+					$class = new $classname($this);
+				}catch(Exception $e){
+					$class = new $classname;
 				}
+							
+
+			if($module['enabled'] == false){
+					
+				$mod = new Modules();
+				$mod->File = $module['file'];
+				$mod->Type = $type;
+				$mod->SortOrder = _dbx_first_cell("SELECT IFNULL(MAX(sort_order),0)+1 FROM xlsws_modules WHERE type = '$type'");
+				$mod->Save();
+					
+				try{
+					$class->install();	// install the module
+				}catch(Exception $e){
+					_xls_log("Error installing module $module[file] . Error Desc: " . $e);
+				}
+					
+					
+			}elseif($module['enabled'] == true){
+				try{
+					$class->remove();	// install the module
+				}catch(Exception $e){
+					_xls_log("Error removing module $module[file] . Error Desc: " . $e);
+				}
+										
+				$mod = Modules::LoadByFileType($module['file'] , $type);
+					
+				if($mod)
+					$mod->Delete();
+					
+
+			}
 
 				
 			_rd();

@@ -85,7 +85,7 @@ class PromoCode extends PromoCodeGen {
 	}
 
 	public function IsProductAffected($objItem) {
-		$arrCode = $this->LsCodeArray;
+		$arrCode = unserialize(strtolower(serialize($this->LsCodeArray)));
 		
 		if (empty($arrCode)) //no product restrictions
 			return true;
@@ -114,7 +114,7 @@ class PromoCode extends PromoCodeGen {
            
         }  
 
-		  if (_xls_array_search_begin($objItem->Code, $arrCode))
+		  if (_xls_array_search_begin(strtolower($objItem->Code), $arrCode))
 			$boolReturn = true; 
 
 		if ($this->IsExcept())
