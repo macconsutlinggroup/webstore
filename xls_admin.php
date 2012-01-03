@@ -1428,7 +1428,7 @@
 				$mod->Save();
 					
 				try{
-					$class->install();	// install the module
+					$class->install();	// run any pre-install function to set it up before turning on
 				}catch(Exception $e){
 					_xls_log("Error installing module $module[file] . Error Desc: " . $e);
 				}
@@ -1436,7 +1436,7 @@
 					
 			}elseif($module['enabled'] == true){
 				try{
-					$class->remove();	// install the module
+					$class->remove();	// run a pre-remove function to do any cleanup before turning off
 				}catch(Exception $e){
 					_xls_log("Error removing module $module[file] . Error Desc: " . $e);
 				}
@@ -1444,7 +1444,7 @@
 				$mod = Modules::LoadByFileType($module['file'] , $type);
 					
 				if($mod)
-					$mod->Delete();
+					$mod->Delete(); //delete the record in xlsws_modules
 					
 
 			}
@@ -2906,15 +2906,25 @@
 			$this->intEditRowid = -1;
 			
 			
-			foreach($this->arrFields as $field =>$properties){
+			foreach($this->arrFields as $field =>$properties) {
 				
 				
 				if($this->arrFields[$field]['Field'] instanceof QListBox  )
-					$this->arrFields[$field]['Field']->SelectedValue = '';
+					{
+						$this->arrFields[$field]['Field']->SelectedValue = '';
+						if (isset($this->arrFields[$field]['DefaultValue']))
+							$this->arrFields[$field]['Field']->SelectedValue = $this->arrFields[$field]['DefaultValue'];
+					}
 				elseif($this->arrFields[$field]['Field'] instanceof QCheckBox   )
-					$this->arrFields[$field]['Field']->Checked = 1;
-				else
-					$this->arrFields[$field]['Field']->Text = '';
+					{ 
+						if (isset($this->arrFields[$field]['DefaultValue']))
+							$this->arrFields[$field]['Field']->Checked = $this->arrFields[$field]['DefaultValue'];				
+					}
+				else {
+						$this->arrFields[$field]['Field']->Text = '';
+						if (isset($this->arrFields[$field]['DefaultValue']))
+							$this->arrFields[$field]['Field']->Text = $this->arrFields[$field]['DefaultValue'];
+					}
 			}
 			
 			$field = key($this->arrFields);
@@ -2988,7 +2998,7 @@
 		}		
 		
 		
-		protected function RenderBoolen($value){
+		protected function RenderBoolean($value){
 			if($value)
 				return QApplication::HtmlEntities(_sp('Yes'));
 			else
@@ -3453,8 +3463,9 @@
 			$this->arrFields['Enabled'] = array('Name' => 'Enabled');
 			$this->arrFields['Enabled']['Field'] = new QCheckBox($this); 	
 			$this->arrFields['Enabled']['Width'] = "30";
-			$this->arrFields['Enabled']['DisplayFunc'] = "RenderBoolen";
-			$this->arrFields['Enabled']['Width'] = 50;	
+			$this->arrFields['Enabled']['DisplayFunc'] = "RenderBoolean";
+			$this->arrFields['Enabled']['Width'] = 50;
+			$this->arrFields['Enabled']['DefaultValue'] = true;	
 			
 			parent::Form_Create();
 			
@@ -3486,7 +3497,8 @@
 			$this->arrFields['Enabled'] = array('Name' => 'Enabled');
 			$this->arrFields['Enabled']['Field'] = new QCheckBox($this); 	
 			$this->arrFields['Enabled']['DisplayFunc'] = "RenderCheck";
-			$this->arrFields['Enabled']['Width'] = 20;	
+			$this->arrFields['Enabled']['Width'] = 20;
+			$this->arrFields['Enabled']['DefaultValue'] = true;	
 			
 			$this->arrFields['Code'] = array('Name' => 'Promo Code');
 			$this->arrFields['Code']['Field'] = new XLSTextBox($this);
@@ -3515,15 +3527,17 @@
 			$this->arrFields['ValidUntil']['DisplayFunc'] = "RenderDateAnytime";
 			$this->arrFields['ValidUntil']['Width'] = 90;	
 			
-			$this->arrFields['Except'] = array('Name' => 'Except');
-			$this->arrFields['Except']['Field'] = new QCheckBox($this); 	
-			$this->arrFields['Except']['DisplayFunc'] = "RenderCheck";
-			$this->arrFields['Except']['Width'] = 20;	
-
 			$this->arrFields['Lscodes'] = array('Name' => 'Product<br>Restrictions');
 			$this->arrFields['Lscodes']['Field'] = new XLSTextBox($this);	
 			$this->arrFields['Lscodes']['Width'] = 90;
 			$this->arrFields['Lscodes']['DisplayFunc'] = "RenderPromoFilters";
+
+			$this->arrFields['Except'] = array('Name' => 'Except');
+			$this->arrFields['Except']['Field'] = new QCheckBox($this); 	
+			$this->arrFields['Except']['DisplayFunc'] = "RenderCheck";
+			$this->arrFields['Except']['Width'] = 20;
+			$this->arrFields['Except']['DefaultValue'] = false;
+
 
 			$this->arrFields['QtyRemaining'] = array('Name' => '# Uses Remain<br>(blank = unlimited)');
 			$this->arrFields['QtyRemaining']['Field'] = new XLSTextBox($this); 	

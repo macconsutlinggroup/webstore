@@ -339,7 +339,8 @@ class Cart extends CartGen {
 
 		if ($objPromoCode->Shipping) {
 			//If this is for shipping, we need to make sure all items in the cart qualify
-		
+			//Since a shipping promo code doesn't discount the items in the cart, just return here
+			
 			$bolApplied = true;	
 			foreach ($arrSorted as $objItem) 
 				if (!$objPromoCode->IsProductAffected($objItem)) $bolApplied=false;

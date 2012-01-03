@@ -110,7 +110,16 @@ class PromoCode extends PromoCodeGen {
                 trim(substr($strCode,8,255)) == strtolower($objItem->Product->WebKeyword3) )              
                 ) 
             $boolReturn = true; 
+            
+            
+            if (substr($strCode, 0,9) == "category:") {
+				$arrTrail = Category::GetTrail($objItem->Product->Rowid,'names');
+				$strTrail = implode("|",$arrTrail);
 
+				$strCompareCode = trim(substr($strCode,9,255));
+				if ($strCompareCode == strtolower(substr($strTrail,0,strlen($strCompareCode))))               
+					$boolReturn = true;
+			}
            
         }  
 
