@@ -40,6 +40,7 @@
 		session_id($_GET[session_name()]);
 		
 	
+
 	
  	function adminTemplate($name)
 	{
@@ -207,9 +208,12 @@
 	
 	
 	//THE VARIOUS ITEMS IN THE ADMIN DROPDOWN PANEL - CONFIGURATION, SHIPPING, PAYMENT, STATS AND SYSTEM
-	$arrShipTabs = array('shipping' => _sp('Shipping') , 'methods' => _sp('Methods') , 'destinations' =>_sp('Destinations') ,'tier' =>_sp('Shipping Tiers') , 'countries' =>_sp('Countries') , 'states' =>_sp('States/Regions') );
+	$arrShipTabs = array('shipping' => _sp('Shipping') , 'methods' => _sp('Methods') , 
+		'destinations' =>_sp('Destinations') ,'tier' =>_sp('Shipping Tiers') ,
+		'countries' =>_sp('Countries') , 'states' =>_sp('States/Regions') );
 	$arrConfigTabs = array('store' => _sp('Store') , 'appear' => _sp('Appearance') , 'sidebars' =>_sp('Sidebars'));
-	$arrPaymentTabs = array('methods' => _sp('Methods') , 'cc' => _sp('Credit Card Types'), 'promo' => _sp('Promo Codes'));
+	$arrPaymentTabs = array('methods' => _sp('Methods') , 'cc' => _sp('Credit Card Types'), 
+		'promo' => _sp('Promo Codes'),'promotasks' => _sp('Promo Code Tasks'));
 	$arrStatTabs = array('chart' => _sp('Charts') , 'vlog' => _sp('Visitor Log'));
 	$arrSystemTabs = array('config' => _sp('Configuration') , 'task' => _sp('Tasks')  , 'slog' => _sp('System Log'));
 	
@@ -238,10 +242,7 @@
 		
 		protected $configPnls = array();
 		
-		protected function __autoload($class_name) {
-	    	include __XLSWS_INCLUDES__."/admin/".$class_name . '.php';
-		}
-
+		
 		protected function Form_Create(){			
 			$this->url = $_SERVER['REQUEST_URI'];
 			
@@ -3649,6 +3650,322 @@
 		
 	}
 	
+	
+	/* class xlsws_admin_promotasks
+	* class to create the main configuration section panel
+	* see api.qcodo.com under Qpanel for methods and parameters
+	*/		
+	class xlsws_admin_promotasks extends QPanel{
+		
+
+		protected $strMethodCallBack; //the callback function to call
+		protected $configType; //the type of configuration in this section
+		
+		public $fields; //list of fields
+		public $helpers = array(); //related helpers
+		
+		
+		protected $objParentObject; //the parent object the configuration option belongs to
+
+		protected $configs; //list of different configurations for a field
+		
+		public $btnSave; //the save button
+		public $btnEdit; //the edit button
+		public $btnCancel; //the cancel button
+		
+        public $Info = ""; //the tooltip info text
+		
+
+        public $special_css_class = ""; //any special CSS class you wish to use for this section
+		
+        // Customize Look/Feel
+        //protected $strPadding = '10px';
+        //protected $strBackColor = '#fefece';
+        
+        protected $strFileLocation;
+			
+        
+        public $EditMode = false;
+			
+		public function __construct($objParentControl, $objParentObject, $configType , $strMethodCallBack, $strControlId = null) {
+			$evaledOptionControl = false;
+		 	// First, let's call the Parent's __constructor
+		 	try {
+		 		parent::__construct($objParentControl, $strControlId);
+		 	} catch (QCallerException $objExc) {
+		 		$objExc->IncrementOffset();
+		 		throw $objExc;
+		 	}
+	
+		 	// Next, we set the local module object
+		 	$this->objParentObject = $objParentObject;
+		 	
+		 	$this->configType = $configType;
+		 	
+		 	// Let's record the reference to the form's MethodCallBack
+		 	$this->strMethodCallBack = $strMethodCallBack;
+	
+		 	$this->fields = array();
+		 	
+		 	
+		 	if(is_string($this->configType))
+		 		$this->configs = Configuration::QueryArray(QQ::Equal( QQN::Configuration()->Key , $this->configType) , QQ::Clause(QQ::OrderBy(QQN::Configuration()->SortOrder , QQN::Configuration()->Title)));
+		 	elseif(is_array($this->configType))
+		 		$this->configs = Configuration::QueryArray(QQ::In( QQN::Configuration()->Key , $this->configType) , QQ::Clause(QQ::OrderBy(QQN::Configuration()->SortOrder , QQN::Configuration()->Title)));
+		 	else
+			 	$this->configs = Configuration::LoadArrayByConfigurationTypeId($this->configType , QQ::Clause(QQ::OrderBy(QQN::Configuration()->SortOrder , QQN::Configuration()->Title)));
+		 	
+		 	foreach($this->configs as $config){
+		 		
+		 		
+	 		if($config->Options != ''){
+        	       		$evaledOptionControl = $this->evalOption($config->Options);
+			}
+               
+               $optType = trim(strtoupper($config->Options));
+               if($optType  == 'BOOL'){
+               		$this->fields[$config->Key] = new XLS_OnOff($this);
+               		$this->fields[$config->Key]->Enabled = true;
+               		$this->fields[$config->Key]->Checked = intval($config->Value)?true:false;
+               }elseif($evaledOptionControl instanceof QControl){
+               		$this->fields[$config->Key] = $evaledOptionControl;
+               }elseif($optType == 'PINT'){
+					$this->fields[$config->Key] = new XLSIntegerBox($this);
+					$this->fields[$config->Key]->Required = true;
+					$this->fields[$config->Key]->Minimum = 0;
+					$this->fields[$config->Key]->Required = true;
+			   }elseif(is_array($evaledOptionControl) && $optType != ""){
+               		$this->fields[$config->Key] = new XLSListBox($this);
+               	
+               		$this->fields[$config->Key]->RemoveAllItems();
+
+              		foreach($evaledOptionControl as $k=>$v)
+              			$this->fields[$config->Key]->AddItem(_sp($v) , $k);
+              			
+              		$this->fields[$config->Key]->SelectedValue = $config->Value;
+               }elseif($optType == 'HEADERIMAGE'){
+    	           // for some very mysterious reason, having this code (the 
+    	           // creation of the XLSTextBox()) in evalOption causes failure
+    	           // (the box doesn't appear)... sticking it here as a 
+    	           // quickfix for release
+    	           $this->fields[$config->Key] = new XLSTextBox($this);
+    	           $this->fields[$config->Key]->Text = $config->Value;
+    	           $this->fields[$config->Key]->Required = true;
+               }else{
+    	           $this->fields[$config->Key] = new XLSTextBox($this);
+    	           $this->fields[$config->Key]->Text = $config->Value;
+    	           if($config->Key=="EMAIL_SMTP_PASSWORD") $this->fields[$config->Key]->TextMode = QTextMode::Password;
+    	        	//$this->fields[$config->Key]->Required = true;
+               }
+			   
+			   
+			
+			   
+
+    	       $this->fields[$config->Key]->Name = _sp($config->Title);
+			 // $this->fields[$config->Key]->CssClass .= " admin_config_field";
+               
+		 	   $this->helpers[$config->Key] = $config->HelperText;
+		 			
+		 	}
+		 	
+		 	
+		 	
+		 	$this->btnSave = new QButton($this);
+		 	$this->btnSave->Text = _sp('Save');
+		 	$this->btnSave->CssClass = 'button admin_save';
+		 	$this->btnSave->Visible = false;
+		 	$this->btnSave->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnSave_click'));
+		 	$this->btnSave->CausesValidation = true;
+			
+		 	$this->btnCancel = new QButton($this);
+		 	$this->btnCancel->Text = _sp('Cancel');
+		 	$this->btnCancel->Visible = false;
+		 	$this->btnCancel->CssClass = 'button admin_cancel';
+		 	$this->btnCancel->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnCancel_click'));
+
+		 	$this->btnEdit = new QButton($this);
+		 	$this->btnEdit->Text = _sp('Edit');
+		 	$this->btnEdit->CssClass = 'button admin_edit';
+		 	$this->btnEdit->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
+		 	
+		 	
+		 	
+		 	$this->strTemplate = adminTemplate('config_panel.tpl.php');
+		 	
+		 	
+		 }
+		 
+		 
+		 public function btnEdit_click(){
+		 	
+		 	$this->btnEdit->Visible = false;
+		 	$this->btnSave->Visible = true;
+		 	$this->btnCancel->Visible = true;
+		 	$this->EditMode = true;
+		 	$this->Refresh();
+		 	
+		 	
+		 	foreach($this->fields as $key=>$field){
+		 		
+				$config = Configuration::LoadByKey($key);
+				
+				if(!$config)
+					continue;
+		 		
+		 		
+               if($this->fields[$key] instanceof XLS_OnOff ){
+               		$this->fields[$config->Key]->Checked = intval($config->Value)?true:false;
+               }elseif(($this->fields[$key] instanceof QFileAsset)  ){
+               	if(file_exists($config->Value))
+              		$this->fields[$config->Key]->File = $config->Value;
+
+              	$this->special_css_class = " extra_height";
+               }elseif($this->fields[$key] instanceof QListControl ){
+              		$this->fields[$config->Key]->SelectedValue = $config->Value;
+               }else{
+    	           $this->fields[$config->Key]->Text = $config->Value;
+               }
+
+		 			
+		 	}		 	
+		 	
+		 	QApplication::ExecuteJavaScript("doRefresh();");
+		 	
+		 }
+		 
+		 
+		public function evalOption($str){
+			
+			$str = trim($str);
+			
+			if($str == '')
+				return '';
+			
+			switch($str){
+				case 'BOOL':
+					return array(0=>'No' , 1=>'Yes');
+				case 'TEMPLATE':
+					$arr = array();
+					$d = dir("templates/");
+					while (false!== ($filename = $d->read())) {
+						if (is_dir("templates/$filename") && file_exists("templates/$filename/index.tpl.php")) { // whatever your includes extensions are
+							$arr[$filename] = $filename;
+						}
+					}
+					$d->close();
+					return $arr;
+
+				case 'COUNTRY':
+					$arr = array();
+					$objCountries= Country::LoadAll(QQ::Clause(QQ::OrderBy(QQN::Country()->SortOrder , QQN::Country()->Country)));
+					if ($objCountries) foreach ($objCountries as $objCountry) {
+						$arr[$objCountry->Code] = ($objCountry->Country);
+					}
+					return $arr;
+				case 'STATE':
+					$states = State::LoadAll(QQ::Clause(QQ::OrderBy(QQN::State()->State)));
+					$arr = array();
+
+					foreach($states as $state) {
+						$arr[$state->Code] = ( $state->Country->Country . '-' .  $state->State);
+					}
+					return $arr;
+				case 'WEIGHT':
+					return array('lb'=>'Pound' , 'kg'=>'Kilogram');
+				case 'DIMENSION':
+					return array('in'=>'Inch' , 'cm'=>'Centimeter');
+				case 'ENCODING':
+					return array('ISO-8859-1'=>'ISO-8859-1','ISO-8859-15'=>'ISO-8859-15','UTF-8'=>'UTF-8'
+								,'cp1251'=>'cp1251','cp1252'=>'cp1252','KOI8-R'=>'KOI8-R'
+								,'BIG5'=>'BIG5','GB2312'=>'GB2312','BIG5-HKSCS'=>'BIG5-HKSCS'
+								,'Shift_JIS'=>'Shift_JIS','EUC-JP'=>'EUC-JP');
+                case 'TIMEZONE':
+                    $arr = _xls_timezones();
+					$arr = _xls_values_as_keys($arr);
+					return $arr;
+				
+				case 'PRODUCT_SORT':
+					return array("Name" => _sp("Product Name") , "Code" => _sp("Product Code") , "SellWeb" => _sp("Price") , "InventoryTotal" => _sp("Inventory"));
+
+				case 'EMAIL_SMTP_SECURITY_MODE':
+					return array(0 => _sp("Autodetect") , 1 => _sp("Force No Security") , 2 => _sp("Force SSL") , 3 => _sp("Force TLS"));
+
+				case 'INVENTORY_DISPLAY_LEVEL':
+					return array('1' => _sp("With Messages Defined Below") , '' => _sp("Showing Actual Numbers Remaining"));
+	
+				case 'STORE_IMAGE_LOCATION':
+					return array('DB'=>'Database' , 'FS' => 'File System');
+				default:
+					if(stristr($str , "return"))
+						return @eval($str);
+				
+			}
+			return '';
+			
+		}		 
+		 
+		
+		
+		
+		public function GetHelperText($fieldKey){
+			
+			if(!isset($this->helpers[$fieldKey]))
+				return '';
+				
+			return htmlspecialchars($this->helpers[$fieldKey]) . '<br /> <br />' .  _sp('Key') . ' : ' .  $fieldKey;
+			
+			
+		}
+		 	 
+		public function btnSave_click($strFormId, $strControlId, $strParameter){
+			
+			$values = array();
+	
+		
+			foreach($this->fields as $key=>$field){
+				
+				$config = Configuration::LoadByKey($key);
+				
+				if(!$config)
+					continue;
+				
+		 		if($field instanceOf QTextBox){
+		 			$config->Value = $field->Text;
+		 		}elseif($field instanceof QListBox){
+		 			if($field->SelectionMode == QSelectionMode::Multiple)
+		 				$config->Value= implode("\n" , $field->SelectedValues);
+		 			else
+			 			$config->Value= $field->SelectedValue;
+		 		}elseif($field instanceof XLS_OnOff ){
+		 			$config->Value= $field->Checked;
+		 		}elseif($field instanceof QRadioButtonList ){
+		 			$config->Value = $field->SelectedValue;
+		 		}elseif($field instanceof QFileAsset )
+		 			$config->Value = $field->File;
+		 			
+		 		$config->Save();
+			}
+			
+			
+			
+			$this->btnCancel_click($strFormId, $strControlId, $strParameter);
+			
+			
+		}
+		 
+		public function btnCancel_click($strFormId, $strControlId, $strParameter){
+		 	$this->btnEdit->Visible = true;
+		 	$this->btnSave->Visible = false;
+		 	$this->btnCancel->Visible = false;
+		 	$this->EditMode = false;
+		 	$this->Refresh();
+						
+		}
+		
+		
+	}
+	
 	/* class xlsws_admin_tier
 	* class to create the shipping tiers for tier based shipping
 	* see class xlsws_admin_generic_edit_form for further specs
@@ -4789,7 +5106,8 @@
 					xlsws_admin_promo::Run('xlsws_admin_promo' , adminTemplate('edit.tpl.php'));
 					break;
 				case "promotasks":
-					xlsws_admin_promotasks::Run('xlsws_admin_promotasks' , adminTemplate('config.tpl.php'));
+					xlsws_admin_chart::Run('xlsws_admin_chart' , adminTemplate('chart.tpl.php'));
+					//xlsws_admin_promotasks::Run('xlsws_admin_promotasks' , adminTemplate('config.tpl.php'));
 					break;
 				default:
 					xlsws_admin_payment_modules::Run('xlsws_admin_payment_modules' , adminTemplate('modules.tpl.php'));
