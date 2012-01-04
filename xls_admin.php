@@ -4631,102 +4631,127 @@
 	
 	
 	
-	/// Include custom admin modules
+	// Include custom admin modules
 	if(is_dir(CUSTOM_INCLUDES . 'admin')){
 		xlsws_admin_load_module(CUSTOM_INCLUDES , 'admin/');
 	}
 	
 	
-	
-	
-	
-
-	
-	
-	
-	if(isset($XLSWS_VARS['page']) && ($XLSWS_VARS['page'] == "cpage")){
-		xlsws_admin_cpage::Run('xlsws_admin_cpage' , adminTemplate('cpage.tpl.php'));
-	}elseif(isset($XLSWS_VARS['page']) && ($XLSWS_VARS['page'] == "system")){
+	switch ($XLSWS_VARS['page'])
+	{
+		case "cpage":
+			xlsws_admin_cpage::Run('xlsws_admin_cpage' , adminTemplate('cpage.tpl.php'));
+			break;
 		
+		case "system":
+			switch ($XLSWS_VARS['subpage'])
+			{
+				case "slog":
+					xlsws_admin_syslog::Run('xlsws_admin_syslog' , adminTemplate('edit.tpl.php'));
+					break;
+					
+				case "task":
+					xlsws_admin_maintenance::Run('xlsws_admin_maintenance' , adminTemplate('maintenance.tpl.php'));
+					break;
+					
+				default:
+					xlsws_admin_system_config::Run('xlsws_admin_system_config' , adminTemplate('config.tpl.php'));
+					break;
+			}
+			break;
 		
-		
-		if(isset($XLSWS_VARS['subpage']) && ($XLSWS_VARS['subpage'] == "slog"))
-			xlsws_admin_syslog::Run('xlsws_admin_syslog' , adminTemplate('edit.tpl.php'));
-		elseif(isset($XLSWS_VARS['subpage']) && ($XLSWS_VARS['subpage'] == "task"))
-			xlsws_admin_maintenance::Run('xlsws_admin_maintenance' , adminTemplate('maintenance.tpl.php'));
-		else
-			xlsws_admin_system_config::Run('xlsws_admin_system_config' , adminTemplate('config.tpl.php'));
-		
-		
-	}elseif(isset($XLSWS_VARS['page']) && ($XLSWS_VARS['page'] == "ship")){
-
-		if(isset($XLSWS_VARS['subpage'])  && ($XLSWS_VARS['subpage'] == 'methods'))
-			xlsws_admin_ship_modules::Run('xlsws_admin_ship_modules' , adminTemplate('modules.tpl.php'));
-		elseif(isset($XLSWS_VARS['subpage'])  && ($XLSWS_VARS['subpage'] == 'destinations'))
-			xlsws_admin_destinations::Run('xlsws_admin_destinations' , adminTemplate('edit.tpl.php'));
-		elseif(isset($XLSWS_VARS['subpage']) && ($XLSWS_VARS['subpage'] == "countries"))
-			xlsws_admin_countries::Run('xlsws_admin_countries' , adminTemplate('edit.tpl.php'));
-		elseif(isset($XLSWS_VARS['subpage']) && ($XLSWS_VARS['subpage'] == "states"))
-			xlsws_admin_states::Run('xlsws_admin_states' , adminTemplate('edit.tpl.php'));
-		elseif (isset($XLSWS_VARS['subpage']) && ($XLSWS_VARS['subpage'] == "tier"))
-			xlsws_admin_tier::Run('xlsws_admin_tier' , adminTemplate('edit.tpl.php'));			
-		else
-			xlsws_admin_ship_config::Run('xlsws_admin_ship_config' , adminTemplate('config.tpl.php'));	
-		
+		case "ship":
+			switch ($XLSWS_VARS['subpage'])
+			{
+				case "methods":
+					xlsws_admin_ship_modules::Run('xlsws_admin_ship_modules' , adminTemplate('modules.tpl.php'));
+					break;
+				
+				case "destinations":
+					xlsws_admin_destinations::Run('xlsws_admin_destinations' , adminTemplate('edit.tpl.php'));
+					break;
+					
+				case "countries":
+					xlsws_admin_countries::Run('xlsws_admin_countries' , adminTemplate('edit.tpl.php'));
+					break;
+				
+				case "states":
+					xlsws_admin_states::Run('xlsws_admin_states' , adminTemplate('edit.tpl.php'));
+					break;
+					
+				case "tier":
+					xlsws_admin_tier::Run('xlsws_admin_tier' , adminTemplate('edit.tpl.php'));
+					break;
+					
+				default:
+					xlsws_admin_ship_config::Run('xlsws_admin_ship_config' , adminTemplate('config.tpl.php'));
+					
+			}
+			break;
 			
-	}elseif(isset($XLSWS_VARS['page']) && ($XLSWS_VARS['page'] == "stats")){
-
-		
-		if(isset($XLSWS_VARS['subpage']) && ($XLSWS_VARS['subpage'] == "vlog"))
-			xlsws_admin_visitlog::Run('xlsws_admin_visitlog' , adminTemplate('edit.tpl.php'));
-		else
-			xlsws_admin_chart::Run('xlsws_admin_chart' , adminTemplate('chart.tpl.php'));
-		
-		
-	}elseif(isset($XLSWS_VARS['page']) && ($XLSWS_VARS['page'] == "paym")){
-		if(isset($XLSWS_VARS['subpage']) && ($XLSWS_VARS['subpage'] == "cc"))
-			xlsws_admin_cc::Run('xlsws_admin_cc' , adminTemplate('edit.tpl.php'));
-		else if (isset($XLSWS_VARS['subpage']) && ($XLSWS_VARS['subpage'] == "promo"))
-			xlsws_admin_promo::Run('xlsws_admin_promo' , adminTemplate('edit.tpl.php'));			
-		else
-			xlsws_admin_payment_modules::Run('xlsws_admin_payment_modules' , adminTemplate('modules.tpl.php'));
-	}elseif(isset($XLSWS_VARS['page']) && ($XLSWS_VARS['page'] == "custom")){
-		
-		if(isset($XLSWS_VARS['subpage'])){
-			$class = $XLSWS_VARS['subpage'];
-			if(class_exists($class))
-				eval("$class::Run('$class' , $class::\$strTemplate );");
-			_xls_log("Invalid admin panel custom class $class ");
-		}else{
-			// load the first admin module
-			$rD = dir(CUSTOM_INCLUDES . 'admin/');
+		case "stats":
+			switch ($XLSWS_VARS['subpage'])
+			{
+				case "vlog":
+					xlsws_admin_visitlog::Run('xlsws_admin_visitlog' , adminTemplate('edit.tpl.php'));
+					break;
+				default:
+					xlsws_admin_chart::Run('xlsws_admin_chart' , adminTemplate('chart.tpl.php'));
+			}
+			break;
 			
-			while (false!== ($filename = $rD->read())) { 
-//				_xls_log("Checking $filename");
-				 if (substr($filename, -4) == '.php') { // whatever your includes extensions are 
-				 	$class = substr($filename, 0 , strlen($filename) -4);
-//					_xls_log("Checking class $class");
-					if(class_exists($class)){
-//						_xls_log("Class found $class");
-						eval("$class::Run('$class' , $class::\$strTemplate );");
-						exit();
-					}
-				 } 
-			} 
-			$rD->close();			
-			 
-		}
+		case "paym":
+			switch ($XLSWS_VARS['subpage'])
+			{
+				case "cc":
+					xlsws_admin_cc::Run('xlsws_admin_cc' , adminTemplate('edit.tpl.php'));
+					break;
+				case "promo":
+					xlsws_admin_promo::Run('xlsws_admin_promo' , adminTemplate('edit.tpl.php'));
+					break;
+				default:
+					xlsws_admin_payment_modules::Run('xlsws_admin_payment_modules' , adminTemplate('modules.tpl.php'));
+			}
+			break;
 			
-	}else{
-		
-		if(isset($XLSWS_VARS['subpage'])  && ($XLSWS_VARS['subpage'] == 'appear'))
-			xlsws_admin_appear_config::Run('xlsws_admin_appear_config' , adminTemplate('config.tpl.php'));	
-		elseif(isset($XLSWS_VARS['subpage'])  && ($XLSWS_VARS['subpage'] == 'sidebars'))
-			xlsws_admin_sidebar_modules::Run('xlsws_admin_sidebar_modules' , adminTemplate('modules.tpl.php'));	
-		else
-			xlsws_admin_store_config::Run('xlsws_admin_store_config' , adminTemplate('config.tpl.php'));	
-		
+		case "custom":
+			if(isset($XLSWS_VARS['subpage'])) {
+				$class = $XLSWS_VARS['subpage'];
+				if(class_exists($class))
+					eval("$class::Run('$class' , $class::\$strTemplate );");
+					_xls_log("Invalid admin panel custom class $class ");
+			} else {
+				// load the first admin module
+				$rD = dir(CUSTOM_INCLUDES . 'admin/');		
+				while (false!== ($filename = $rD->read())) { 
+					 if (substr($filename, -4) == '.php') { // whatever your includes extensions are 
+					 	$class = substr($filename, 0 , strlen($filename) -4);
+						if(class_exists($class)) {
+							eval("$class::Run('$class' , $class::\$strTemplate );");
+							exit();
+						}
+					 } 
+				} 
+				$rD->close();
+			}
+			break;
+			
+		default:
+			switch ($XLSWS_VARS['subpage'])
+			{
+				case "appear":
+					xlsws_admin_appear_config::Run('xlsws_admin_appear_config' , adminTemplate('config.tpl.php'));
+					break;
+				case "sidebars":
+					xlsws_admin_sidebar_modules::Run('xlsws_admin_sidebar_modules' , adminTemplate('modules.tpl.php'));
+					break;
+				default:
+					xlsws_admin_store_config::Run('xlsws_admin_store_config' , adminTemplate('config.tpl.php'));
+			}
+			
+	
 	}
+
 	
 
 
