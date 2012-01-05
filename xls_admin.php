@@ -3655,144 +3655,49 @@
 	* class to create the main configuration section panel
 	* see api.qcodo.com under Qpanel for methods and parameters
 	*/		
-	class xlsws_admin_promotasks extends QPanel{
+	class xlsws_admin_promotasks extends xlsws_admin {
 		
 
-		protected $strMethodCallBack; //the callback function to call
-		protected $configType; //the type of configuration in this section
 		
-		public $fields; //list of fields
-		public $helpers = array(); //related helpers
-		
-		
-		protected $objParentObject; //the parent object the configuration option belongs to
-
-		protected $configs; //list of different configurations for a field
-		
-		public $btnSave; //the save button
-		public $btnEdit; //the edit button
-		public $btnCancel; //the cancel button
-		
-        public $Info = ""; //the tooltip info text
-		
-
-        public $special_css_class = ""; //any special CSS class you wish to use for this section
-		
-        // Customize Look/Feel
-        //protected $strPadding = '10px';
-        //protected $strBackColor = '#fefece';
-        
-        protected $strFileLocation;
+		protected function Form_Create(){
 			
-        
-        public $EditMode = false;
+			parent::Form_Create();
 			
-		public function __construct($objParentControl, $objParentObject, $configType , $strMethodCallBack, $strControlId = null) {
-			$evaledOptionControl = false;
-		 	// First, let's call the Parent's __constructor
-		 	try {
-		 		parent::__construct($objParentControl, $strControlId);
-		 	} catch (QCallerException $objExc) {
-		 		$objExc->IncrementOffset();
-		 		throw $objExc;
-		 	}
-	
-		 	// Next, we set the local module object
-		 	$this->objParentObject = $objParentObject;
-		 	
-		 	$this->configType = $configType;
-		 	
-		 	// Let's record the reference to the form's MethodCallBack
-		 	$this->strMethodCallBack = $strMethodCallBack;
-	
-		 	$this->fields = array();
-		 	
-		 	
-		 	if(is_string($this->configType))
-		 		$this->configs = Configuration::QueryArray(QQ::Equal( QQN::Configuration()->Key , $this->configType) , QQ::Clause(QQ::OrderBy(QQN::Configuration()->SortOrder , QQN::Configuration()->Title)));
-		 	elseif(is_array($this->configType))
-		 		$this->configs = Configuration::QueryArray(QQ::In( QQN::Configuration()->Key , $this->configType) , QQ::Clause(QQ::OrderBy(QQN::Configuration()->SortOrder , QQN::Configuration()->Title)));
-		 	else
-			 	$this->configs = Configuration::LoadArrayByConfigurationTypeId($this->configType , QQ::Clause(QQ::OrderBy(QQN::Configuration()->SortOrder , QQN::Configuration()->Title)));
-		 	
-		 	foreach($this->configs as $config){
-		 		
-		 		
-	 		if($config->Options != ''){
-        	       		$evaledOptionControl = $this->evalOption($config->Options);
+			
+
+			
+			$this->arrTabs = $GLOBALS['arrShipTabs'];
+			$this->currentTab = 'shipping';
+			
+				
+			
+			$this->configPnls['defship'] = new xlsws_admin_config_panel($this , $this , 'SHIP_RESTRICT_DESTINATION' , "configDone");
+			$this->configPnls['defship']->Name = _sp('Restricted shipping');
+			$this->configPnls['defship']->Info = _sp('Only ship to restricted destinations?');
+			
+
+			$this->configPnls['wunit'] = new xlsws_admin_config_panel($this , $this , 'WEIGHT_UNIT' , "configDone");
+			$this->configPnls['wunit']->Name = _sp('Weight Unit');
+			$this->configPnls['wunit']->Info = _sp('This is weight unit you are using for your products in LightSpeed. This unit will be used in shipping calculation.');
+			
+
+			$this->configPnls['dunit'] = new xlsws_admin_config_panel($this , $this , 'DIMENSION_UNIT' , "configDone");
+			$this->configPnls['dunit']->Name = _sp('Dimension Unit');
+			$this->configPnls['dunit']->Info = _sp('This is dimension unit you are using for your products in LightSpeed. This unit will be used in shipping calculation.');
+			
+			$shipTaxconfig = Configuration::LoadByKey('SHIPPING_TAXABLE');
+			if (! $shipTaxconfig)
+			{
+
+				_xls_insert_conf('SHIPPING_TAXABLE', _sp('Taxable shipping'), '0', _sp('This is used to enable tax calculations on shipping charges.'), 9, 'BOOL');
 			}
-               
-               $optType = trim(strtoupper($config->Options));
-               if($optType  == 'BOOL'){
-               		$this->fields[$config->Key] = new XLS_OnOff($this);
-               		$this->fields[$config->Key]->Enabled = true;
-               		$this->fields[$config->Key]->Checked = intval($config->Value)?true:false;
-               }elseif($evaledOptionControl instanceof QControl){
-               		$this->fields[$config->Key] = $evaledOptionControl;
-               }elseif($optType == 'PINT'){
-					$this->fields[$config->Key] = new XLSIntegerBox($this);
-					$this->fields[$config->Key]->Required = true;
-					$this->fields[$config->Key]->Minimum = 0;
-					$this->fields[$config->Key]->Required = true;
-			   }elseif(is_array($evaledOptionControl) && $optType != ""){
-               		$this->fields[$config->Key] = new XLSListBox($this);
-               	
-               		$this->fields[$config->Key]->RemoveAllItems();
 
-              		foreach($evaledOptionControl as $k=>$v)
-              			$this->fields[$config->Key]->AddItem(_sp($v) , $k);
-              			
-              		$this->fields[$config->Key]->SelectedValue = $config->Value;
-               }elseif($optType == 'HEADERIMAGE'){
-    	           // for some very mysterious reason, having this code (the 
-    	           // creation of the XLSTextBox()) in evalOption causes failure
-    	           // (the box doesn't appear)... sticking it here as a 
-    	           // quickfix for release
-    	           $this->fields[$config->Key] = new XLSTextBox($this);
-    	           $this->fields[$config->Key]->Text = $config->Value;
-    	           $this->fields[$config->Key]->Required = true;
-               }else{
-    	           $this->fields[$config->Key] = new XLSTextBox($this);
-    	           $this->fields[$config->Key]->Text = $config->Value;
-    	           if($config->Key=="EMAIL_SMTP_PASSWORD") $this->fields[$config->Key]->TextMode = QTextMode::Password;
-    	        	//$this->fields[$config->Key]->Required = true;
-               }
-			   
-			   
+
+			$this->configPnls['taxship'] = new xlsws_admin_config_panel($this , $this , 'SHIPPING_TAXABLE' , "configDone");
+			$this->configPnls['taxship']->Name = _sp('Taxable shipping');
+			$this->configPnls['taxship']->Info = _sp('This is used to enable tax calculations on shipping charges.');
 			
-			   
-
-    	       $this->fields[$config->Key]->Name = _sp($config->Title);
-			 // $this->fields[$config->Key]->CssClass .= " admin_config_field";
-               
-		 	   $this->helpers[$config->Key] = $config->HelperText;
-		 			
-		 	}
-		 	
-		 	
-		 	
-		 	$this->btnSave = new QButton($this);
-		 	$this->btnSave->Text = _sp('Save');
-		 	$this->btnSave->CssClass = 'button admin_save';
-		 	$this->btnSave->Visible = false;
-		 	$this->btnSave->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnSave_click'));
-		 	$this->btnSave->CausesValidation = true;
-			
-		 	$this->btnCancel = new QButton($this);
-		 	$this->btnCancel->Text = _sp('Cancel');
-		 	$this->btnCancel->Visible = false;
-		 	$this->btnCancel->CssClass = 'button admin_cancel';
-		 	$this->btnCancel->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnCancel_click'));
-
-		 	$this->btnEdit = new QButton($this);
-		 	$this->btnEdit->Text = _sp('Edit');
-		 	$this->btnEdit->CssClass = 'button admin_edit';
-		 	$this->btnEdit->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
-		 	
-		 	
-		 	
-		 	$this->strTemplate = adminTemplate('config_panel.tpl.php');
-		 	
+			 	
 		 	
 		 }
 		 
@@ -5106,8 +5011,8 @@
 					xlsws_admin_promo::Run('xlsws_admin_promo' , adminTemplate('edit.tpl.php'));
 					break;
 				case "promotasks":
-					xlsws_admin_chart::Run('xlsws_admin_chart' , adminTemplate('chart.tpl.php'));
-					//xlsws_admin_promotasks::Run('xlsws_admin_promotasks' , adminTemplate('config.tpl.php'));
+					//xlsws_admin_chart::Run('xlsws_admin_chart' , adminTemplate('chart.tpl.php'));
+					xlsws_admin_promotasks::Run('xlsws_admin_promotasks' , adminTemplate('config.tpl.php'));
 					break;
 				default:
 					xlsws_admin_payment_modules::Run('xlsws_admin_payment_modules' , adminTemplate('modules.tpl.php'));
