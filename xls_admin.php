@@ -4636,6 +4636,8 @@
 		xlsws_admin_load_module(CUSTOM_INCLUDES , 'admin/');
 	}
 	
+	if(!isset($XLSWS_VARS['page'])) 	$XLSWS_VARS['page']="";
+	if(!isset($XLSWS_VARS['subpage'])) 	$XLSWS_VARS['subpage']="";
 	
 	switch ($XLSWS_VARS['page'])
 	{
@@ -4715,7 +4717,7 @@
 			break;
 			
 		case "custom":
-			if(isset($XLSWS_VARS['subpage'])) {
+			if($XLSWS_VARS['subpage'] != "") {
 				$class = $XLSWS_VARS['subpage'];
 				if(class_exists($class))
 					eval("$class::Run('$class' , $class::\$strTemplate );");
