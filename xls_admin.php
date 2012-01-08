@@ -1919,7 +1919,245 @@
 	}
 	
 	
+		/* class xlsws_admin_cpage_panel
+	* class to create the edit pages for each editable section
+	* see api.qcodo.com under Qpanel for more specs
+	*/					
+	class xlsws_admin_promorestrict_panel extends QPanel {
+		
 	
+		protected $strMethodCallBack;
+		
+		public $fields;
+		public $helpers = array();
+		
+		
+		protected $objParentObject;
+
+		public $page;
+		
+		public $btnSave;
+		public $btnEdit;
+		public $btnCancel;
+		public $btnDelete;
+		public $btnDeleteConfirm;
+		
+        public $Info = "";
+		
+        
+		public $txtPageKey;
+		public $txtPageTitle;
+		public $txtPageKeywords;
+		public $txtPageDescription;
+		public $txtPageText;
+		public $txtProductTag;
+        
+        
+		public $pxyAddNewPage;
+		
+        
+        public $EditMode = false;
+        public $NewMode = false;
+			
+        
+        
+		public function __construct($objParentControl, $objParentObject, $page , $strMethodCallBack, $strControlId = null) {
+		 	// First, let's call the Parent's __constructor
+		 	try {
+		 		parent::__construct($objParentControl, $strControlId);
+		 	} catch (QCallerException $objExc) {
+		 		$objExc->IncrementOffset();
+		 		throw $objExc;
+		 	}
+	
+		 	// Next, we set the local module object
+		 	$this->objParentObject = $objParentObject;
+		 	
+		 	$this->page = $page;
+		 	
+		 	// Let's record the reference to the form's MethodCallBack
+		 	$this->strMethodCallBack = $strMethodCallBack;
+	
+
+			$this->txtPageKey = new XLSTextBox($this);
+			$this->txtPageKey->Required = true;
+	        $this->txtPageKey->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
+	        $this->txtPageKey->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
+			$this->txtPageKey->Height = 20;
+
+	        $this->txtPageTitle = new XLSTextBox($this);
+			$this->txtPageTitle->Required = true;
+	        $this->txtPageTitle->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
+	        $this->txtPageTitle->AddAction(new QEscapeKeyEvent() ,new QServerControlAction($this , 'btnCancel_click'));
+	        $this->txtPageTitle->Height = 20;
+	        
+
+			$this->txtPageText = new QFCKeditor($this);
+			$this->txtPageText->BasePath = __VIRTUAL_DIRECTORY__ . __JS_ASSETS__ . '/fckeditor/' ;
+            $this->txtPageText->Required = true;
+            $this->txtPageText->Width = 550;
+            $this->txtPageText->Height = 450;
+//			$this->txtPageText->ToolbarSet = "XLSWS";
+			$this->txtPageText->Name=_sp("Page content");
+	        $this->txtPageText->CrossScripting = QCrossScripting::Allow;        
+	        
+			
+			$this->txtProductTag = new XLSTextBox($this);
+	        $this->txtProductTag->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
+	        $this->txtProductTag->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
+			$this->txtProductTag->Height = 20;
+			
+	        
+			$this->txtPageKeywords = new XLSTextBox($this);
+	        $this->txtPageKeywords->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
+	        $this->txtPageKeywords->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
+	        $this->txtPageKeywords->Height = 20;
+
+	        
+			$this->txtPageDescription = new XLSTextBox($this);
+	        $this->txtPageDescription->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
+	        $this->txtPageDescription->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
+			$this->txtPageDescription->Height = 20;
+		 	
+		 	
+		 	$this->btnSave = new QButton($this);
+		 	$this->btnSave->Text = _sp('Save');
+		 	$this->btnSave->CssClass = 'button';
+		 	$this->btnSave->Visible = false;
+		 	$this->btnSave->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnSave_click'));
+		 	$this->btnSave->CausesValidation = true;
+			
+		 	$this->btnCancel = new QButton($this);
+		 	$this->btnCancel->Text = _sp('Cancel');
+		 	$this->btnCancel->Visible = false;
+		 	$this->btnCancel->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnCancel_click'));
+
+		 	$this->btnEdit = new QButton($this);
+		 	$this->btnEdit->Text = _sp('Edit');
+		 	$this->btnEdit->CssClass = 'button admin_edit';
+		 	$this->btnEdit->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
+
+		 	
+		 	$this->btnDelete = new QButton($this);
+		 	$this->btnDelete->Text = _sp('Delete');
+		 	$this->btnDelete->CssClass = 'button admin_delete';
+//		 	$this->btnDelete->AddAction(new QClickEvent() , new QConfirmAction(_sp('Are you sure you want to delete this page?')));
+		 	$this->btnDelete->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnDelete_click'));
+		 	
+
+		 	$this->btnDeleteConfirm = new QButton($this);
+		 	$this->btnDeleteConfirm->Text = _sp('Delete?');
+		 	$this->btnDeleteConfirm->Visible = false;
+		 	$this->btnDeleteConfirm->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnDeleteConfirm_click'));
+		 	
+
+		 	$this->pxyAddNewPage = new QControlProxy($this);
+			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
+			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QTerminateAction());
+		 	
+		 	
+		 	$this->strTemplate = adminTemplate('promo_restrict.tpl.php');
+		 	
+						
+	
+		 	
+		 }
+		 
+		 
+		 public function btnEdit_click(){
+		 	
+		 	$this->btnEdit->Visible = false;
+		 	$this->btnDelete->Visible = false;
+		 	$this->btnSave->Visible = true;
+		 	$this->btnCancel->Visible = true;
+		 	$this->EditMode = true;
+		 	
+
+			$this->txtPageKey->Text = $this->page->Key;
+			$this->txtPageTitle->Text = ($this->page->Title == _sp('+ Add new page'))?'':$this->page->Title;
+			$this->txtPageText->Text = $this->page->Page;
+			$this->txtProductTag->Text = $this->page->ProductTag;
+			$this->txtPageKeywords->Text = $this->page->MetaKeywords;
+			$this->txtPageDescription->Text = $this->page->MetaDescription;
+
+		 	$this->Refresh();
+			
+			
+		 	QApplication::ExecuteJavaScript("doRefresh();");
+		 	
+		 }
+		 
+		 
+		 
+		 
+		public function btnSave_click($strFormId, $strControlId, $strParameter){
+			
+						
+			if(!$this->page->Rowid)
+				if($tpage = CustomPage::LoadByKey($this->txtPageKey->Text)){
+					_qalert(sprintf(_sp("Another page already exists with key %s. Please choose a new key.") , $this->txtPageKey->Text));
+					return;
+				}
+					
+			
+			$this->page->Key = $this->txtPageKey->Text;
+			$this->page->Title = stripslashes($this->txtPageTitle->Text);
+			//error_log($this->txtPageText->Text);
+			$this->page->Page = stripslashes($this->txtPageText->Text);
+			$this->page->ProductTag = $this->txtProductTag->Text;
+			$this->page->MetaKeywords = stripslashes($this->txtPageKeywords->Text);
+			$this->page->MetaDescription = stripslashes($this->txtPageDescription->Text);
+
+		 	$this->btnEdit->Visible = true;
+		 	$this->btnDelete->Visible = true;
+		 	$this->btnSave->Visible = false;
+		 	$this->btnCancel->Visible = false;
+		 	$this->btnDeleteConfirm->Visible = false;
+		 	$this->EditMode = false;
+			
+			
+			if(!$this->page->Rowid){
+				$this->page->Save(true);
+				_rd($_SERVER['REQUEST_URI']);
+			}else
+				$this->page->Save();
+			
+		 	$this->Refresh();
+			
+		}
+		 
+		public function btnCancel_click($strFormId, $strControlId, $strParameter){
+		 	$this->btnEdit->Visible = true;
+		 	$this->btnDelete->Visible = true;
+		 	$this->btnSave->Visible = false;
+		 	$this->btnDeleteConfirm->Visible = false;
+		 	$this->btnCancel->Visible = false;
+		 	$this->EditMode = false;
+		 	//$this->Refresh();
+						
+		}
+		
+
+		public function btnDeleteConfirm_click($strFormId, $strControlId, $strParameter){
+			$this->page->Delete();
+		 	//$this->btnCancel->Visible = false;
+		 	QApplication::ExecuteJavaScript("window.location.reload()");
+			
+		}
+		
+		
+		public function btnDelete_click($strFormId, $strControlId, $strParameter){	
+			$this->btnEdit->Visible = false;
+			$this->btnDelete->Visible = false;	
+			$this->btnDeleteConfirm->SetCustomStyle('padding','0 5px 3px 5px');		
+			$this->btnCancel->SetCustomStyle('padding','0 5px 3px 5px');													
+			$this->btnDeleteConfirm->Visible = true;
+			$this->btnCancel->Visible = true;
+		}
+		 
+		 
+		 
+	}
 	
 	
 	
@@ -3663,27 +3901,23 @@
 			
 			parent::Form_Create();
 			
+			$this->arrTabs = $GLOBALS['arrPaymentTabs'];
+			$this->currentTab = 'promotasks';
+						
+			$this->configPnls['defship'] = new xlsws_admin_promorestrict_panel($this, $this , 'testing' , "pageDone");
+				//new xlsws_admin_config_panel($this , $this , 'SHIP_RESTRICT_DESTINATION' , "configDone");
+			$this->configPnls['defship']->Name = _sp('Set Promo Code Restrictions');
+			$this->configPnls['defship']->Info = _sp('Set restrictions on a promo code to only apply to certain products');
 			
-
 			
-			$this->arrTabs = $GLOBALS['arrShipTabs'];
-			$this->currentTab = 'shipping';
-			
-				
-			
-			$this->configPnls['defship'] = new xlsws_admin_config_panel($this , $this , 'SHIP_RESTRICT_DESTINATION' , "configDone");
-			$this->configPnls['defship']->Name = _sp('Restricted shipping');
-			$this->configPnls['defship']->Info = _sp('Only ship to restricted destinations?');
-			
-
 			$this->configPnls['wunit'] = new xlsws_admin_config_panel($this , $this , 'WEIGHT_UNIT' , "configDone");
-			$this->configPnls['wunit']->Name = _sp('Weight Unit');
-			$this->configPnls['wunit']->Info = _sp('This is weight unit you are using for your products in LightSpeed. This unit will be used in shipping calculation.');
+			$this->configPnls['wunit']->Name = _sp('Create Batch Promo Codes');
+			$this->configPnls['wunit']->Info = _sp('Create numbered sequential promo codes, .');
 			
 
 			$this->configPnls['dunit'] = new xlsws_admin_config_panel($this , $this , 'DIMENSION_UNIT' , "configDone");
-			$this->configPnls['dunit']->Name = _sp('Dimension Unit');
-			$this->configPnls['dunit']->Info = _sp('This is dimension unit you are using for your products in LightSpeed. This unit will be used in shipping calculation.');
+			$this->configPnls['dunit']->Name = _sp('Purge Used Promo Codes');
+			$this->configPnls['dunit']->Info = _sp('Delete all Promo Codes that have a certain number of uses and have been depleted.');
 			
 			$shipTaxconfig = Configuration::LoadByKey('SHIPPING_TAXABLE');
 			if (! $shipTaxconfig)
@@ -4938,7 +5172,9 @@
 		xlsws_admin_load_module(CUSTOM_INCLUDES , 'admin/');
 	}
 	
-	
+	if(!isset($XLSWS_VARS['page'])) 	$XLSWS_VARS['page']="";
+	if(!isset($XLSWS_VARS['subpage'])) 	$XLSWS_VARS['subpage']="";
+
 	switch ($XLSWS_VARS['page'])
 	{
 		case "cpage":
@@ -5020,7 +5256,7 @@
 			break;
 			
 		case "custom":
-			if(isset($XLSWS_VARS['subpage'])) {
+			if($XLSWS_VARS['subpage'] != "") {
 				$class = $XLSWS_VARS['subpage'];
 				if(class_exists($class))
 					eval("$class::Run('$class' , $class::\$strTemplate );");
