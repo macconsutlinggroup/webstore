@@ -1919,11 +1919,9 @@
 	}
 	
 	
-		/* class xlsws_admin_cpage_panel
-	* class to create the edit pages for each editable section
-	* see api.qcodo.com under Qpanel for more specs
+	/* underpinning panel for tasks that require criteria to run
 	*/					
-	class xlsws_admin_promorestrict_panel extends QPanel {
+	class xlsws_admin_task_panel extends QPanel {
 		
 	
 		protected $strMethodCallBack;
@@ -1972,7 +1970,6 @@
 	
 		 	// Next, we set the local module object
 		 	$this->objParentObject = $objParentObject;
-		 	
 		 	$this->page = $page;
 		 	
 		 	// Let's record the reference to the form's MethodCallBack
@@ -2033,15 +2030,14 @@
 		 	$this->btnCancel->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnCancel_click'));
 
 		 	$this->btnEdit = new QButton($this);
-		 	$this->btnEdit->Text = _sp('Edit');
+		 	$this->btnEdit->Text = _sp('Perform');
 		 	$this->btnEdit->CssClass = 'button admin_edit';
 		 	$this->btnEdit->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
 
-		 	
+	/*	 	
 		 	$this->btnDelete = new QButton($this);
 		 	$this->btnDelete->Text = _sp('Delete');
 		 	$this->btnDelete->CssClass = 'button admin_delete';
-//		 	$this->btnDelete->AddAction(new QClickEvent() , new QConfirmAction(_sp('Are you sure you want to delete this page?')));
 		 	$this->btnDelete->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnDelete_click'));
 		 	
 
@@ -2050,7 +2046,7 @@
 		 	$this->btnDeleteConfirm->Visible = false;
 		 	$this->btnDeleteConfirm->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnDeleteConfirm_click'));
 		 	
-
+*/
 		 	$this->pxyAddNewPage = new QControlProxy($this);
 			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
 			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QTerminateAction());
@@ -2067,7 +2063,6 @@
 		 public function btnEdit_click(){
 		 	
 		 	$this->btnEdit->Visible = false;
-		 	$this->btnDelete->Visible = false;
 		 	$this->btnSave->Visible = true;
 		 	$this->btnCancel->Visible = true;
 		 	$this->EditMode = true;
@@ -2109,10 +2104,8 @@
 			$this->page->MetaDescription = stripslashes($this->txtPageDescription->Text);
 
 		 	$this->btnEdit->Visible = true;
-		 	$this->btnDelete->Visible = true;
 		 	$this->btnSave->Visible = false;
 		 	$this->btnCancel->Visible = false;
-		 	$this->btnDeleteConfirm->Visible = false;
 		 	$this->EditMode = false;
 			
 			
@@ -2128,9 +2121,7 @@
 		 
 		public function btnCancel_click($strFormId, $strControlId, $strParameter){
 		 	$this->btnEdit->Visible = true;
-		 	$this->btnDelete->Visible = true;
 		 	$this->btnSave->Visible = false;
-		 	$this->btnDeleteConfirm->Visible = false;
 		 	$this->btnCancel->Visible = false;
 		 	$this->EditMode = false;
 		 	//$this->Refresh();
@@ -2218,7 +2209,7 @@
 			
 			$pages = CustomPage::QueryArray(QQ::All() , QQ::Clause(QQ::OrderBy(QQN::CustomPage()->Title)));
 			
-			foreach($pages as $page){
+			foreach($pages as $page){ error_log(print_r($page,true));
 				$this->cpagePnls[$page->Rowid] = new xlsws_admin_cpage_panel($this, $this , $page , "pageDone");
 			}
 
@@ -3896,212 +3887,85 @@
 	class xlsws_admin_promotasks extends xlsws_admin {
 		
 
+		protected $btnCancel;
+		protected $btnSave;
+		protected $btnDelete;
+		
+		protected $configPnls;
+		
+		public $page;
+		
+		public $pxyAddNewPage;
+		
 		
 		protected function Form_Create(){
-			
 			parent::Form_Create();
 			
 			$this->arrTabs = $GLOBALS['arrPaymentTabs'];
 			$this->currentTab = 'promotasks';
-						
-			$this->configPnls['defship'] = new xlsws_admin_promorestrict_panel($this, $this , 'testing' , "pageDone");
-				//new xlsws_admin_config_panel($this , $this , 'SHIP_RESTRICT_DESTINATION' , "configDone");
-			$this->configPnls['defship']->Name = _sp('Set Promo Code Restrictions');
-			$this->configPnls['defship']->Info = _sp('Set restrictions on a promo code to only apply to certain products');
-			
-			
-			$this->configPnls['wunit'] = new xlsws_admin_config_panel($this , $this , 'WEIGHT_UNIT' , "configDone");
-			$this->configPnls['wunit']->Name = _sp('Create Batch Promo Codes');
-			$this->configPnls['wunit']->Info = _sp('Create numbered sequential promo codes, .');
-			
-
-			$this->configPnls['dunit'] = new xlsws_admin_config_panel($this , $this , 'DIMENSION_UNIT' , "configDone");
-			$this->configPnls['dunit']->Name = _sp('Purge Used Promo Codes');
-			$this->configPnls['dunit']->Info = _sp('Delete all Promo Codes that have a certain number of uses and have been depleted.');
-			
-			$shipTaxconfig = Configuration::LoadByKey('SHIPPING_TAXABLE');
-			if (! $shipTaxconfig)
-			{
-
-				_xls_insert_conf('SHIPPING_TAXABLE', _sp('Taxable shipping'), '0', _sp('This is used to enable tax calculations on shipping charges.'), 9, 'BOOL');
-			}
 
 
-			$this->configPnls['taxship'] = new xlsws_admin_config_panel($this , $this , 'SHIPPING_TAXABLE' , "configDone");
-			$this->configPnls['taxship']->Name = _sp('Taxable shipping');
-			$this->configPnls['taxship']->Info = _sp('This is used to enable tax calculations on shipping charges.');
+			$this->page = new CustomPage();
 			
-			 	
-		 	
-		 }
-		 
-		 
-		 public function btnEdit_click(){
-		 	
-		 	$this->btnEdit->Visible = false;
-		 	$this->btnSave->Visible = true;
-		 	$this->btnCancel->Visible = true;
-		 	$this->EditMode = true;
-		 	$this->Refresh();
-		 	
-		 	
-		 	foreach($this->fields as $key=>$field){
-		 		
-				$config = Configuration::LoadByKey($key);
-				
-				if(!$config)
-					continue;
-		 		
-		 		
-               if($this->fields[$key] instanceof XLS_OnOff ){
-               		$this->fields[$config->Key]->Checked = intval($config->Value)?true:false;
-               }elseif(($this->fields[$key] instanceof QFileAsset)  ){
-               	if(file_exists($config->Value))
-              		$this->fields[$config->Key]->File = $config->Value;
+			
+			$this->pxyAddNewPage = new QControlProxy($this);
+			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QServerAction('NewPage'));
+			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QTerminateAction());
+			
+	        
+			
+			//$this->btnEdit = new QButton($this->dtrConfigs);
+			//$this->btnEdit->Text = _sp("Edit");
+			$this->btnCancel = new QButton($this);
+			$this->btnCancel->Text = _sp("Cancel");
+			$this->btnCancel->CssClass = 'admin_cancel';
+			$this->btnCancel->AddAction( new QClickEvent() , new QAjaxAction('btnCancel_Click'));
+			
+			
+			
+			$this->btnSave = new QButton($this);
+			$this->btnSave->Text = _sp("Save");
+			$this->btnSave->CssClass = 'admin_save';
+			$this->btnSave->AddAction( new QClickEvent() , new QServerAction('btnSave_Click'));
+			$this->btnSave->CausesValidation = true;
+			
+			$this->listPages();
 
-              	$this->special_css_class = " extra_height";
-               }elseif($this->fields[$key] instanceof QListControl ){
-              		$this->fields[$config->Key]->SelectedValue = $config->Value;
-               }else{
-    	           $this->fields[$config->Key]->Text = $config->Value;
-               }
 
-		 			
-		 	}		 	
-		 	
-		 	QApplication::ExecuteJavaScript("doRefresh();");
-		 	
-		 }
-		 
-		 
-		public function evalOption($str){
-			
-			$str = trim($str);
-			
-			if($str == '')
-				return '';
-			
-			switch($str){
-				case 'BOOL':
-					return array(0=>'No' , 1=>'Yes');
-				case 'TEMPLATE':
-					$arr = array();
-					$d = dir("templates/");
-					while (false!== ($filename = $d->read())) {
-						if (is_dir("templates/$filename") && file_exists("templates/$filename/index.tpl.php")) { // whatever your includes extensions are
-							$arr[$filename] = $filename;
-						}
-					}
-					$d->close();
-					return $arr;
-
-				case 'COUNTRY':
-					$arr = array();
-					$objCountries= Country::LoadAll(QQ::Clause(QQ::OrderBy(QQN::Country()->SortOrder , QQN::Country()->Country)));
-					if ($objCountries) foreach ($objCountries as $objCountry) {
-						$arr[$objCountry->Code] = ($objCountry->Country);
-					}
-					return $arr;
-				case 'STATE':
-					$states = State::LoadAll(QQ::Clause(QQ::OrderBy(QQN::State()->State)));
-					$arr = array();
-
-					foreach($states as $state) {
-						$arr[$state->Code] = ( $state->Country->Country . '-' .  $state->State);
-					}
-					return $arr;
-				case 'WEIGHT':
-					return array('lb'=>'Pound' , 'kg'=>'Kilogram');
-				case 'DIMENSION':
-					return array('in'=>'Inch' , 'cm'=>'Centimeter');
-				case 'ENCODING':
-					return array('ISO-8859-1'=>'ISO-8859-1','ISO-8859-15'=>'ISO-8859-15','UTF-8'=>'UTF-8'
-								,'cp1251'=>'cp1251','cp1252'=>'cp1252','KOI8-R'=>'KOI8-R'
-								,'BIG5'=>'BIG5','GB2312'=>'GB2312','BIG5-HKSCS'=>'BIG5-HKSCS'
-								,'Shift_JIS'=>'Shift_JIS','EUC-JP'=>'EUC-JP');
-                case 'TIMEZONE':
-                    $arr = _xls_timezones();
-					$arr = _xls_values_as_keys($arr);
-					return $arr;
-				
-				case 'PRODUCT_SORT':
-					return array("Name" => _sp("Product Name") , "Code" => _sp("Product Code") , "SellWeb" => _sp("Price") , "InventoryTotal" => _sp("Inventory"));
-
-				case 'EMAIL_SMTP_SECURITY_MODE':
-					return array(0 => _sp("Autodetect") , 1 => _sp("Force No Security") , 2 => _sp("Force SSL") , 3 => _sp("Force TLS"));
-
-				case 'INVENTORY_DISPLAY_LEVEL':
-					return array('1' => _sp("With Messages Defined Below") , '' => _sp("Showing Actual Numbers Remaining"));
-	
-				case 'STORE_IMAGE_LOCATION':
-					return array('DB'=>'Database' , 'FS' => 'File System');
-				default:
-					if(stristr($str , "return"))
-						return @eval($str);
-				
-			}
-			return '';
-			
-		}		 
-		 
-		
-		
-		
-		public function GetHelperText($fieldKey){
-			
-			if(!isset($this->helpers[$fieldKey]))
-				return '';
-				
-			return htmlspecialchars($this->helpers[$fieldKey]) . '<br /> <br />' .  _sp('Key') . ' : ' .  $fieldKey;
-			
-			
 		}
-		 	 
-		public function btnSave_click($strFormId, $strControlId, $strParameter){
-			
-			$values = array();
+		
 	
 		
-			foreach($this->fields as $key=>$field){
-				
-				$config = Configuration::LoadByKey($key);
-				
-				if(!$config)
-					continue;
-				
-		 		if($field instanceOf QTextBox){
-		 			$config->Value = $field->Text;
-		 		}elseif($field instanceof QListBox){
-		 			if($field->SelectionMode == QSelectionMode::Multiple)
-		 				$config->Value= implode("\n" , $field->SelectedValues);
-		 			else
-			 			$config->Value= $field->SelectedValue;
-		 		}elseif($field instanceof XLS_OnOff ){
-		 			$config->Value= $field->Checked;
-		 		}elseif($field instanceof QRadioButtonList ){
-		 			$config->Value = $field->SelectedValue;
-		 		}elseif($field instanceof QFileAsset )
-		 			$config->Value = $field->File;
-		 			
-		 		$config->Save();
-			}
+		protected function listPages(){
+			error_log("here");
+
 			
-			
-			
-			$this->btnCancel_click($strFormId, $strControlId, $strParameter);
+			$page = new CustomPage();
+			$page->Title = _sp('Set Promo Code Restrictions');
+			$this->configPnls[0] = new xlsws_admin_task_panel($this, $this , $page , "pageDone");
+
+			$page = new CustomPage();
+			$page->Title = _sp('Create Batch Promo Codes');
+			$this->configPnls[1] = new xlsws_admin_task_panel($this, $this , $page , "pageDone");
+
+			$page = new CustomPage();
+			$page->Title = _sp('Purge Used Promo Codes');
+			$this->configPnls[2] = new xlsws_admin_task_panel($this, $this , $page , "pageDone");
 			
 			
 		}
-		 
-		public function btnCancel_click($strFormId, $strControlId, $strParameter){
-		 	$this->btnEdit->Visible = true;
-		 	$this->btnSave->Visible = false;
-		 	$this->btnCancel->Visible = false;
-		 	$this->EditMode = false;
-		 	$this->Refresh();
-						
+	
+		
+		function pageDone(){
+			$this->listPages();
 		}
 		
+		
+		public function NewPage(){
+			
+		}
+	
+	
 		
 	}
 	
