@@ -343,7 +343,7 @@ color:#fff;
 display:inline;
 float:left;
 font-size:14px;
-height:28px;
+
 margin-top:-6px;
 text-align:left;
 display: block;
@@ -370,6 +370,24 @@ margin-left:30px;
 padding-left:20px;
 }
 
+.module_task {
+margin:0 auto;
+padding-bottom:30px;
+padding-left:20px;
+padding-top:10px;
+width: 940px;
+height:360px;
+
+background: #eee;
+}
+
+.module_task select {
+background:#f7f7f7;
+border:1px solid #111;
+color:#000;
+font-size:11px;
+text-align:left;
+}
 .extra_height{
 	height: 150px;
 }
@@ -552,4 +570,9 @@ font-size: 8px;
 .rounded-bottom {
 -webkit-border-bottom-left-radius: 5px;
 -webkit-border-bottom-left-radius: 5px;
+}
+
+.SmallMenu {
+height: 100px;
+size: 5;
 }

@@ -25,7 +25,7 @@
  *
  */
 
-?><li class="rounded" <?php if($_CONTROL->EditMode): ?>style="height:350px;"<?php endif; ?>> 
+?><li class="rounded" <?php if($_CONTROL->EditMode): ?>style="height:250px;"<?php endif; ?>> 
 						<div class="title rounded"> 
 							<div class="name" style="cursor:pointer;" <?php $_CONTROL->pxyAddNewPage->RenderAsEvents(); ?>><?= $_CONTROL->page->Title; ?></div> 
 							<div style="float:right">
@@ -37,15 +37,9 @@
 						</div>
 						
 						<?php if($_CONTROL->EditMode): ?>
-<div class="module_task">
-<?php $_CONTROL->ctlCategories->RenderWithError(); ?>
+<div class="smodule_config">
 
-<?php $_CONTROL->ctlFamilies->RenderWithError(); ?>
-
-<?php $_CONTROL->ctlClasses->RenderWithError(); ?>
-
-
-
+Creating a batch here.
 
 								
 </div>

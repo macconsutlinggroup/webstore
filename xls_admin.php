@@ -1736,8 +1736,8 @@
 		 	
 		 	// Let's record the reference to the form's MethodCallBack
 		 	$this->strMethodCallBack = $strMethodCallBack;
-	
-
+			     
+     
 			$this->txtPageKey = new XLSTextBox($this);
 			$this->txtPageKey->Required = true;
 	        $this->txtPageKey->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
@@ -2030,29 +2030,16 @@
 		 	$this->btnCancel->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnCancel_click'));
 
 		 	$this->btnEdit = new QButton($this);
-		 	$this->btnEdit->Text = _sp('Perform');
+		 	$this->btnEdit->Text = _sp('Begin');
 		 	$this->btnEdit->CssClass = 'button admin_edit';
 		 	$this->btnEdit->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
 
-	/*	 	
-		 	$this->btnDelete = new QButton($this);
-		 	$this->btnDelete->Text = _sp('Delete');
-		 	$this->btnDelete->CssClass = 'button admin_delete';
-		 	$this->btnDelete->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnDelete_click'));
-		 	
-
-		 	$this->btnDeleteConfirm = new QButton($this);
-		 	$this->btnDeleteConfirm->Text = _sp('Delete?');
-		 	$this->btnDeleteConfirm->Visible = false;
-		 	$this->btnDeleteConfirm->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnDeleteConfirm_click'));
-		 	
-*/
 		 	$this->pxyAddNewPage = new QControlProxy($this);
 			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
 			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QTerminateAction());
 		 	
 		 	
-		 	$this->strTemplate = adminTemplate('promo_restrict.tpl.php');
+		 	$this->strTemplate = adminTemplate($page->Key.'.tpl.php');
 		 	
 						
 	
@@ -2150,7 +2137,286 @@
 		 
 	}
 	
+		/* underpinning panel for tasks that require criteria to run
+	*/					
+	class xlsws_admin_task_promorestrict_panel extends QPanel {
+		
 	
+		protected $strMethodCallBack;
+		
+		public $fields;
+		public $helpers = array();
+		
+		
+		protected $objParentObject;
+
+		public $page;
+		
+		public $btnSave;
+		public $btnEdit;
+		public $btnCancel;
+		public $btnDelete;
+		public $btnDeleteConfirm;
+		
+        public $Info = "";
+		
+        
+		public $txtPageKey;
+		public $txtPageTitle;
+		public $txtPageKeywords;
+		public $txtPageDescription;
+		public $txtPageText;
+		public $txtProductTag;
+		
+        public $ctlCategories;
+        public $ctlFamilies;
+        public $ctlProductCodes;
+        public $ctlClasses;
+        public $ctlKeywords;
+        
+		public $pxyAddNewPage;
+		
+        
+        public $EditMode = false;
+        public $NewMode = false;
+			
+        
+        
+		public function __construct($objParentControl, $objParentObject, $page , $strMethodCallBack, $strControlId = null) {
+		 	// First, let's call the Parent's __constructor
+		 	try {
+		 		parent::__construct($objParentControl, $strControlId);
+		 	} catch (QCallerException $objExc) {
+		 		$objExc->IncrementOffset();
+		 		throw $objExc;
+		 	}
+	
+		 	// Next, we set the local module object
+		 	$this->objParentObject = $objParentObject;
+		 	$this->page = $page;
+		 	
+		 	// Let's record the reference to the form's MethodCallBack
+		 	$this->strMethodCallBack = $strMethodCallBack;
+	
+				
+			$this->ctlCategories = new QListBox($this);
+		    $this->ctlCategories->CssClass = 'SmallMenu';
+		    $this->ctlCategories->SetCustomAttribute('size', 5);
+		    $this->ctlCategories->Name = QApplication::Translate('Suggestees');
+		    $objListItem = new QListItem('-- Family --', 0);
+		    $this->ctlCategories->AddItem(new QListItem('-- aa --', 0));
+		    $this->ctlCategories->AddItem(new QListItem('-- bb --', 0));
+		    $this->ctlCategories->AddItem(new QListItem('-- cc --', 0));
+		    $this->ctlCategories->AddItem(new QListItem('-- dd --', 0));
+		    $this->ctlCategories->AddItem(new QListItem('-- ee --', 0));
+
+
+			$this->ctlFamilies = new QListBox($this);
+		    $this->ctlFamilies->CssClass = 'SmallMenu';
+		    $this->ctlFamilies->SetCustomAttribute('size', 5);
+		    $this->ctlFamilies->SetCustomAttribute('multiple','yes');
+		    $this->ctlFamilies->Name = "Families";
+		    $objItems= Family::LoadAll(QQ::Clause(QQ::OrderBy(QQN::Family()->Family)));
+			if ($objItems) foreach ($objItems as $objItem) {
+				$this->ctlFamilies->AddItem($objItem->Family, $objItem->Family);
+			}
+
+			$this->ctlClasses = new QListBox($this);
+		    $this->ctlClasses->CssClass = 'SmallMenu';
+		    $this->ctlClasses->SetCustomAttribute('size', 5);
+		    $this->ctlClasses->SetCustomAttribute('multiple','yes');
+		    $this->ctlClasses->Name = "Families";
+		    $objItems= Product::QueryArray(
+				    QQ::AndCondition(
+		            QQ::NotEqual(QQN::Product()->ClassName, ''),
+		            QQ::IsNotNull(QQN::Product()->ClassName)
+		        ),
+		    	QQ::Clause(
+		    		QQ::GroupBy(QQN::Product()->ClassName),
+		    		QQ::OrderBy(QQN::Product()->ClassName)
+		    	));
+
+			if ($objItems) foreach ($objItems as $objItem) {
+				$this->ctlClasses->AddItem($objItem->ClassName, $objItem->ClassName);
+			}
+
+
+			$this->ctlCategories = new QListBox($this);
+		    $this->ctlCategories->CssClass = 'SmallMenu';
+		    $this->ctlCategories->SetCustomAttribute('size', 5);
+		    $this->ctlCategories->SetCustomAttribute('multiple','yes');
+		    $this->ctlCategories->Name = "Categories";
+		    $objItems= Category::QueryArray(
+				QQ::AndCondition(
+					QQ::Equal(QQN::Category()->Parent, 0)
+				),
+				QQ::Clause(QQ::OrderBy(QQN::Category()->Name))
+			);
+			if ($objItems) foreach ($objItems as $objItem) {
+				$this->ctlCategories->AddItem($objItem->Name, $objItem->Name);
+			}
+				
+
+			$this->txtPageKey = new XLSTextBox($this);
+			$this->txtPageKey->Required = true;
+	        $this->txtPageKey->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
+	        $this->txtPageKey->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
+			$this->txtPageKey->Height = 20;
+
+	        $this->txtPageTitle = new XLSTextBox($this);
+			$this->txtPageTitle->Required = true;
+	        $this->txtPageTitle->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
+	        $this->txtPageTitle->AddAction(new QEscapeKeyEvent() ,new QServerControlAction($this , 'btnCancel_click'));
+	        $this->txtPageTitle->Height = 20;
+	        
+
+			$this->txtPageText = new QFCKeditor($this);
+			$this->txtPageText->BasePath = __VIRTUAL_DIRECTORY__ . __JS_ASSETS__ . '/fckeditor/' ;
+            $this->txtPageText->Required = true;
+            $this->txtPageText->Width = 550;
+            $this->txtPageText->Height = 450;
+//			$this->txtPageText->ToolbarSet = "XLSWS";
+			$this->txtPageText->Name=_sp("Page content");
+	        $this->txtPageText->CrossScripting = QCrossScripting::Allow;        
+	        
+			
+			$this->txtProductTag = new XLSTextBox($this);
+	        $this->txtProductTag->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
+	        $this->txtProductTag->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
+			$this->txtProductTag->Height = 20;
+			
+	        
+			$this->txtPageKeywords = new XLSTextBox($this);
+	        $this->txtPageKeywords->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
+	        $this->txtPageKeywords->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
+	        $this->txtPageKeywords->Height = 20;
+
+	        
+			$this->txtPageDescription = new XLSTextBox($this);
+	        $this->txtPageDescription->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
+	        $this->txtPageDescription->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
+			$this->txtPageDescription->Height = 20;
+		 	
+		 	
+		 	$this->btnSave = new QButton($this);
+		 	$this->btnSave->Text = _sp('Save');
+		 	$this->btnSave->CssClass = 'button';
+		 	$this->btnSave->Visible = false;
+		 	$this->btnSave->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnSave_click'));
+		 	$this->btnSave->CausesValidation = true;
+			
+		 	$this->btnCancel = new QButton($this);
+		 	$this->btnCancel->Text = _sp('Cancel');
+		 	$this->btnCancel->Visible = false;
+		 	$this->btnCancel->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnCancel_click'));
+
+		 	$this->btnEdit = new QButton($this);
+		 	$this->btnEdit->Text = _sp('Begin');
+		 	$this->btnEdit->CssClass = 'button admin_edit';
+		 	$this->btnEdit->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
+
+		 	$this->pxyAddNewPage = new QControlProxy($this);
+			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
+			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QTerminateAction());
+		 	
+		 	
+		 	$this->strTemplate = adminTemplate($page->Key.'.tpl.php');
+		 	
+						
+	
+		 	
+		 }
+		 
+		 
+		 public function btnEdit_click(){
+		 	
+		 	$this->btnEdit->Visible = false;
+		 	$this->btnSave->Visible = true;
+		 	$this->btnCancel->Visible = true;
+		 	$this->EditMode = true;
+		 	
+
+			$this->txtPageKey->Text = $this->page->Key;
+			$this->txtPageTitle->Text = ($this->page->Title == _sp('+ Add new page'))?'':$this->page->Title;
+			$this->txtPageText->Text = $this->page->Page;
+			$this->txtProductTag->Text = $this->page->ProductTag;
+			$this->txtPageKeywords->Text = $this->page->MetaKeywords;
+			$this->txtPageDescription->Text = $this->page->MetaDescription;
+
+		 	$this->Refresh();
+			
+			
+		 	QApplication::ExecuteJavaScript("doRefresh();");
+		 	
+		 }
+		 
+		 
+		 
+		 
+		public function btnSave_click($strFormId, $strControlId, $strParameter){
+			
+						
+			if(!$this->page->Rowid)
+				if($tpage = CustomPage::LoadByKey($this->txtPageKey->Text)){
+					_qalert(sprintf(_sp("Another page already exists with key %s. Please choose a new key.") , $this->txtPageKey->Text));
+					return;
+				}
+					
+			
+			$this->page->Key = $this->txtPageKey->Text;
+			$this->page->Title = stripslashes($this->txtPageTitle->Text);
+			//error_log($this->txtPageText->Text);
+			$this->page->Page = stripslashes($this->txtPageText->Text);
+			$this->page->ProductTag = $this->txtProductTag->Text;
+			$this->page->MetaKeywords = stripslashes($this->txtPageKeywords->Text);
+			$this->page->MetaDescription = stripslashes($this->txtPageDescription->Text);
+
+		 	$this->btnEdit->Visible = true;
+		 	$this->btnSave->Visible = false;
+		 	$this->btnCancel->Visible = false;
+		 	$this->EditMode = false;
+			
+			
+			if(!$this->page->Rowid){
+				$this->page->Save(true);
+				_rd($_SERVER['REQUEST_URI']);
+			}else
+				$this->page->Save();
+			
+		 	$this->Refresh();
+			
+		}
+		 
+		public function btnCancel_click($strFormId, $strControlId, $strParameter){
+		 	$this->btnEdit->Visible = true;
+		 	$this->btnSave->Visible = false;
+		 	$this->btnCancel->Visible = false;
+		 	$this->EditMode = false;
+		 	//$this->Refresh();
+						
+		}
+		
+
+		public function btnDeleteConfirm_click($strFormId, $strControlId, $strParameter){
+			$this->page->Delete();
+		 	//$this->btnCancel->Visible = false;
+		 	QApplication::ExecuteJavaScript("window.location.reload()");
+			
+		}
+		
+		
+		public function btnDelete_click($strFormId, $strControlId, $strParameter){	
+			$this->btnEdit->Visible = false;
+			$this->btnDelete->Visible = false;	
+			$this->btnDeleteConfirm->SetCustomStyle('padding','0 5px 3px 5px');		
+			$this->btnCancel->SetCustomStyle('padding','0 5px 3px 5px');													
+			$this->btnDeleteConfirm->Visible = true;
+			$this->btnCancel->Visible = true;
+		}
+		 
+		 
+		 
+	}
 	
 	/* class xlsws_admin_cpage
 	* class to create an edit data grid, similar to the destinations tab
@@ -3937,19 +4203,21 @@
 	
 		
 		protected function listPages(){
-			error_log("here");
 
 			
 			$page = new CustomPage();
 			$page->Title = _sp('Set Promo Code Restrictions');
-			$this->configPnls[0] = new xlsws_admin_task_panel($this, $this , $page , "pageDone");
+			$page->Key = "promo_restrict";
+			$this->configPnls[0] = new xlsws_admin_task_promorestrict_panel($this, $this , $page , "pageDone");
 
 			$page = new CustomPage();
 			$page->Title = _sp('Create Batch Promo Codes');
+			$page->Key = "promo_create_batch";
 			$this->configPnls[1] = new xlsws_admin_task_panel($this, $this , $page , "pageDone");
 
 			$page = new CustomPage();
 			$page->Title = _sp('Purge Used Promo Codes');
+			$page->Key = "promo_remove_used";
 			$this->configPnls[2] = new xlsws_admin_task_panel($this, $this , $page , "pageDone");
 			
 			
