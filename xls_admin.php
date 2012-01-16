@@ -2199,7 +2199,7 @@
 		 	$this->strMethodCallBack = $strMethodCallBack;
 	
 				
-			$this->ctlCategories = new QListBox($this);
+			/*$this->ctlCategories = new QListBox($this,'ctlCategories');
 		    $this->ctlCategories->CssClass = 'SmallMenu';
 		    $this->ctlCategories->SetCustomAttribute('size', 5);
 		    $this->ctlCategories->Name = QApplication::Translate('Suggestees');
@@ -2209,23 +2209,28 @@
 		    $this->ctlCategories->AddItem(new QListItem('-- cc --', 0));
 		    $this->ctlCategories->AddItem(new QListItem('-- dd --', 0));
 		    $this->ctlCategories->AddItem(new QListItem('-- ee --', 0));
+			*/
 
-
-			$this->ctlFamilies = new QListBox($this);
+			$this->ctlFamilies = new QListBox($this,'ctlFamilies');
 		    $this->ctlFamilies->CssClass = 'SmallMenu';
 		    $this->ctlFamilies->SetCustomAttribute('size', 5);
 		    $this->ctlFamilies->SetCustomAttribute('multiple','yes');
 		    $this->ctlFamilies->Name = "Families";
+		    $this->ctlFamilies->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
+		    $this->ctlFamilies->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
 		    $objItems= Family::LoadAll(QQ::Clause(QQ::OrderBy(QQN::Family()->Family)));
 			if ($objItems) foreach ($objItems as $objItem) {
 				$this->ctlFamilies->AddItem($objItem->Family, $objItem->Family);
 			}
 
-			$this->ctlClasses = new QListBox($this);
+			$this->ctlClasses = new QListBox($this,'ctlClasses');
 		    $this->ctlClasses->CssClass = 'SmallMenu';
 		    $this->ctlClasses->SetCustomAttribute('size', 5);
 		    $this->ctlClasses->SetCustomAttribute('multiple','yes');
 		    $this->ctlClasses->Name = "Families";
+		    $this->ctlClasses->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
+		    $this->ctlClasses->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
+		    
 		    $objItems= Product::QueryArray(
 				    QQ::AndCondition(
 		            QQ::NotEqual(QQN::Product()->ClassName, ''),
@@ -2241,11 +2246,13 @@
 			}
 
 
-			$this->ctlCategories = new QListBox($this);
+			$this->ctlCategories = new QListBox($this,'ctlCategories');
 		    $this->ctlCategories->CssClass = 'SmallMenu';
 		    $this->ctlCategories->SetCustomAttribute('size', 5);
 		    $this->ctlCategories->SetCustomAttribute('multiple','yes');
 		    $this->ctlCategories->Name = "Categories";
+		    $this->ctlCategories->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
+		    $this->ctlCategories->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
 		    $objItems= Category::QueryArray(
 				QQ::AndCondition(
 					QQ::Equal(QQN::Category()->Parent, 0)
@@ -2326,7 +2333,6 @@
 	
 		 	
 		 }
-		 
 		 
 		 public function btnEdit_click(){
 		 	
