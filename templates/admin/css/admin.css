@@ -371,21 +371,61 @@ padding-left:20px;
 }
 
 .module_task {
-margin:0 auto;
 padding-bottom:30px;
 padding-left:20px;
 padding-top:10px;
 width: 940px;
 height:360px;
-
+margin: auto;
 background: #eee;
 }
 
+.module_task .label {
+font-size:14px;
+font-weight:700;
+height:0;
+float:left;
+margin-left:5px;
+margin-right:5px;
+text-align:right;
+
+display: block;
+}
+.module_task .left {
+text-align:left;
+}
+.module_task .selectone {
+background:#222;
+border:1px solid #111;
+color:#fff;
+font-size:13px;
+height: 23px;
+width: 200px;
+text-align:left;
+display: block;
+}
+.module_task .selecttwo {
+background:#222;
+border:1px solid #111;
+color:#fff;
+font-size:13px;
+height: 23px;
+width: 330px;
+text-align:left;
+display: block;
+}
 .module_task select {
 background:#f7f7f7;
 border:1px solid #111;
 color:#000;
 font-size:11px;
+text-align:left;
+}
+.module_task field {
+background:#f7f7f7;
+border:1px solid #111;
+color:#000;
+font-size:14px;
 text-align:left;
 }
 .extra_height{
@@ -573,6 +613,9 @@ font-size: 8px;
 }
 
 .SmallMenu {
-height: 100px;
-size: 5;
+height: 160px;
+width: auto;
+max-width: 300px;
+
 }
+

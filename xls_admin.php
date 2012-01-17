@@ -2168,6 +2168,8 @@
 		public $txtPageText;
 		public $txtProductTag;
 		
+		public $ctlPromoCode;
+ 		public $ctlExcept;
         public $ctlCategories;
         public $ctlFamilies;
         public $ctlProductCodes;
@@ -2199,22 +2201,33 @@
 		 	$this->strMethodCallBack = $strMethodCallBack;
 	
 				
-			/*$this->ctlCategories = new QListBox($this,'ctlCategories');
-		    $this->ctlCategories->CssClass = 'SmallMenu';
-		    $this->ctlCategories->SetCustomAttribute('size', 5);
-		    $this->ctlCategories->Name = QApplication::Translate('Suggestees');
-		    $objListItem = new QListItem('-- Family --', 0);
-		    $this->ctlCategories->AddItem(new QListItem('-- aa --', 0));
-		    $this->ctlCategories->AddItem(new QListItem('-- bb --', 0));
-		    $this->ctlCategories->AddItem(new QListItem('-- cc --', 0));
-		    $this->ctlCategories->AddItem(new QListItem('-- dd --', 0));
-		    $this->ctlCategories->AddItem(new QListItem('-- ee --', 0));
-			*/
-
+			$this->ctlPromoCode = new QListBox($this,'ctlPromoCode');
+		    $this->ctlPromoCode->Name = "PromoCode";
+		    $this->ctlPromoCode->CssClass = 'selectone';
+		    $this->ctlPromoCode->AddAction(new QChangeEvent() , new QAjaxControlAction($this,"btnChange_click"));
+			$this->ctlPromoCode->AddItem('--Choose Promo Code--', 0);
+		    $objItems= PromoCode::QueryArray(
+				QQ::AndCondition(QQ::Equal(QQN::PromoCode()->Code, 'freeship')),
+				QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
+			if ($objItems) foreach ($objItems as $objItem)
+				$this->ctlPromoCode->AddItem('for free shipping', $objItem->Rowid);			
+		    $objItems= PromoCode::QueryArray(
+				QQ::AndCondition(QQ::NotEqual(QQN::PromoCode()->Code, 'freeship')),
+				QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
+			if ($objItems) foreach ($objItems as $objItem)
+				$this->ctlPromoCode->AddItem('"'.$objItem->Code.'"', $objItem->Rowid);
+			
+			$this->ctlExcept = new QListBox($this,'ctlExcept');
+		    $this->ctlExcept->Name = "Except";
+		    $this->ctlExcept->CssClass = 'selecttwo';
+			$this->ctlExcept->AddItem('products match the following criteria', 0);
+			$this->ctlExcept->AddItem('matching everything BUT the following criteria', 0);
+									
 			$this->ctlFamilies = new QListBox($this,'ctlFamilies');
 		    $this->ctlFamilies->CssClass = 'SmallMenu';
-		    $this->ctlFamilies->SetCustomAttribute('size', 5);
+		    $this->ctlFamilies->SetCustomAttribute('size', 9);
 		    $this->ctlFamilies->SetCustomAttribute('multiple','yes');
+		    $this->ctlFamilies->SelectionMode = QSelectionMode::Multiple;
 		    $this->ctlFamilies->Name = "Families";
 		    $this->ctlFamilies->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
 		    $this->ctlFamilies->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
@@ -2225,12 +2238,12 @@
 
 			$this->ctlClasses = new QListBox($this,'ctlClasses');
 		    $this->ctlClasses->CssClass = 'SmallMenu';
-		    $this->ctlClasses->SetCustomAttribute('size', 5);
+		    $this->ctlClasses->SetCustomAttribute('size', 9);
 		    $this->ctlClasses->SetCustomAttribute('multiple','yes');
+		    $this->ctlClasses->SelectionMode = QSelectionMode::Multiple;
 		    $this->ctlClasses->Name = "Families";
 		    $this->ctlClasses->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
-		    $this->ctlClasses->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
-		    
+		    $this->ctlClasses->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));		    
 		    $objItems= Product::QueryArray(
 				    QQ::AndCondition(
 		            QQ::NotEqual(QQN::Product()->ClassName, ''),
@@ -2248,8 +2261,9 @@
 
 			$this->ctlCategories = new QListBox($this,'ctlCategories');
 		    $this->ctlCategories->CssClass = 'SmallMenu';
-		    $this->ctlCategories->SetCustomAttribute('size', 5);
+		    $this->ctlCategories->SetCustomAttribute('size', 9);
 		    $this->ctlCategories->SetCustomAttribute('multiple','yes');
+		    $this->ctlCategories->SelectionMode = QSelectionMode::Multiple;
 		    $this->ctlCategories->Name = "Categories";
 		    $this->ctlCategories->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
 		    $this->ctlCategories->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
@@ -2263,48 +2277,53 @@
 				$this->ctlCategories->AddItem($objItem->Name, $objItem->Name);
 			}
 				
+			$this->ctlKeywords = new QListBox($this,'ctlKeywords');
+		    $this->ctlKeywords->CssClass = 'SmallMenu';
+		    $this->ctlKeywords->SetCustomAttribute('size', 9);
+		    $this->ctlKeywords->SetCustomAttribute('multiple','yes');
+		    $this->ctlKeywords->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlKeywords->Name = "Keywords";
+		    $this->ctlKeywords->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
+		    $this->ctlKeywords->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
+		    $arrKeywords=array();
+		    $objItems= Product::QueryArray(
+				    QQ::AndCondition(QQ::NotEqual(QQN::Product()->WebKeyword1, ''),QQ::IsNotNull(QQN::Product()->WebKeyword1)),
+		    		QQ::Clause(QQ::GroupBy(QQN::Product()->WebKeyword1), QQ::OrderBy(QQN::Product()->WebKeyword1)));
+			if ($objItems) foreach ($objItems as $objItem) $arrKeywords[]=strtolower($objItem->WebKeyword1);
+		    $objItems= Product::QueryArray(
+				    QQ::AndCondition(QQ::NotEqual(QQN::Product()->WebKeyword2, ''),QQ::IsNotNull(QQN::Product()->WebKeyword2)),
+		    		QQ::Clause(QQ::GroupBy(QQN::Product()->WebKeyword2), QQ::OrderBy(QQN::Product()->WebKeyword2)));
+			if ($objItems) foreach ($objItems as $objItem) $arrKeywords[]=strtolower($objItem->WebKeyword2);
+		    $objItems= Product::QueryArray(
+				    QQ::AndCondition(QQ::NotEqual(QQN::Product()->WebKeyword3, ''),QQ::IsNotNull(QQN::Product()->WebKeyword3)),
+		    		QQ::Clause(QQ::GroupBy(QQN::Product()->WebKeyword3), QQ::OrderBy(QQN::Product()->WebKeyword3)));
+			if ($objItems) foreach ($objItems as $objItem) $arrKeywords[]=strtolower($objItem->WebKeyword3);
+			$arrKeywords=array_unique($arrKeywords);
+			sort($arrKeywords);
+			foreach ($arrKeywords as $strKeyword) 
+				$this->ctlKeywords->AddItem($strKeyword, $strKeyword);
 
-			$this->txtPageKey = new XLSTextBox($this);
-			$this->txtPageKey->Required = true;
-	        $this->txtPageKey->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
-	        $this->txtPageKey->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
-			$this->txtPageKey->Height = 20;
 
-	        $this->txtPageTitle = new XLSTextBox($this);
-			$this->txtPageTitle->Required = true;
-	        $this->txtPageTitle->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
-	        $this->txtPageTitle->AddAction(new QEscapeKeyEvent() ,new QServerControlAction($this , 'btnCancel_click'));
-	        $this->txtPageTitle->Height = 20;
-	        
+			$this->ctlProductCodes = new QListBox($this,'ctlProductCodes');
+		    $this->ctlProductCodes->CssClass = 'SmallMenu';
+		    $this->ctlProductCodes->SetCustomAttribute('size', 9);
+		    $this->ctlProductCodes->SetCustomAttribute('multiple','yes');
+		    $this->ctlProductCodes->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlProductCodes->Name = "Productcodes";
+		    $this->ctlProductCodes->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
+		    $this->ctlProductCodes->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
+		    $objItems= Product::QueryArray(
+				QQ::AndCondition(
+					QQ::Equal(QQN::Product()->Web, 1),
+					QQ::Equal(QQN::Product()->FkProductMasterId, 0)
+				),
+				QQ::Clause(QQ::OrderBy(QQN::Product()->Code))
+			);
+			if ($objItems) foreach ($objItems as $objItem) {
+				$this->ctlProductCodes->AddItem($objItem->Code, $objItem->Code);
+			}
 
-			$this->txtPageText = new QFCKeditor($this);
-			$this->txtPageText->BasePath = __VIRTUAL_DIRECTORY__ . __JS_ASSETS__ . '/fckeditor/' ;
-            $this->txtPageText->Required = true;
-            $this->txtPageText->Width = 550;
-            $this->txtPageText->Height = 450;
-//			$this->txtPageText->ToolbarSet = "XLSWS";
-			$this->txtPageText->Name=_sp("Page content");
-	        $this->txtPageText->CrossScripting = QCrossScripting::Allow;        
-	        
-			
-			$this->txtProductTag = new XLSTextBox($this);
-	        $this->txtProductTag->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
-	        $this->txtProductTag->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
-			$this->txtProductTag->Height = 20;
-			
-	        
-			$this->txtPageKeywords = new XLSTextBox($this);
-	        $this->txtPageKeywords->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
-	        $this->txtPageKeywords->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
-	        $this->txtPageKeywords->Height = 20;
 
-	        
-			$this->txtPageDescription = new XLSTextBox($this);
-	        $this->txtPageDescription->AddAction(new QEnterKeyEvent() , new QServerControlAction($this , 'btnSave_click'));
-	        $this->txtPageDescription->AddAction(new QEscapeKeyEvent() , new QServerControlAction($this , 'btnCancel_click'));
-			$this->txtPageDescription->Height = 20;
-		 	
-		 	
 		 	$this->btnSave = new QButton($this);
 		 	$this->btnSave->Text = _sp('Save');
 		 	$this->btnSave->CssClass = 'button';
@@ -2334,6 +2353,13 @@
 		 	
 		 }
 		 
+		 public function btnChange_click()
+		 {
+		 	error_log("changing code to ".$this->ctlPromoCode->SelectedValue);
+		 
+		 
+		 }
+		 
 		 public function btnEdit_click(){
 		 	
 		 	$this->btnEdit->Visible = false;
@@ -2342,13 +2368,13 @@
 		 	$this->EditMode = true;
 		 	
 
-			$this->txtPageKey->Text = $this->page->Key;
+			/*$this->txtPageKey->Text = $this->page->Key;
 			$this->txtPageTitle->Text = ($this->page->Title == _sp('+ Add new page'))?'':$this->page->Title;
 			$this->txtPageText->Text = $this->page->Page;
 			$this->txtProductTag->Text = $this->page->ProductTag;
 			$this->txtPageKeywords->Text = $this->page->MetaKeywords;
 			$this->txtPageDescription->Text = $this->page->MetaDescription;
-
+		*/
 		 	$this->Refresh();
 			
 			
@@ -2361,7 +2387,21 @@
 		 
 		public function btnSave_click($strFormId, $strControlId, $strParameter){
 			
-						
+			$strRestrictions="";
+			
+			foreach($this->ctlProductCodes->SelectedValues as $strVal)
+				$strRestrictions .= ",".$strVal;
+			foreach($this->ctlCategories->SelectedValues as $strVal)
+				$strRestrictions .= ",category:".$strVal;
+			foreach($this->ctlFamilies->SelectedValues as $strVal)
+				$strRestrictions .= ",family:".$strVal;
+			foreach($this->ctlClasses->SelectedValues as $strVal)
+				$strRestrictions .= ",class:".$strVal;
+			foreach($this->ctlKeywords->SelectedValues as $strVal)
+				$strRestrictions .= ",keyword:".$strVal;
+				
+			$strRestrictions=substr($strRestrictions,1);
+			/*			
 			if(!$this->page->Rowid)
 				if($tpage = CustomPage::LoadByKey($this->txtPageKey->Text)){
 					_qalert(sprintf(_sp("Another page already exists with key %s. Please choose a new key.") , $this->txtPageKey->Text));
@@ -2376,19 +2416,25 @@
 			$this->page->ProductTag = $this->txtProductTag->Text;
 			$this->page->MetaKeywords = stripslashes($this->txtPageKeywords->Text);
 			$this->page->MetaDescription = stripslashes($this->txtPageDescription->Text);
-
-		 	$this->btnEdit->Visible = true;
-		 	$this->btnSave->Visible = false;
-		 	$this->btnCancel->Visible = false;
-		 	$this->EditMode = false;
+			*/
+		 	error_log($strRestrictions);
+		 	
+			//if($field->SelectionMode == QSelectionMode::Multiple)
+		 	//			$config->Value= implode("\n" , $field->SelectedValues);
 			
-			
+			/*
 			if(!$this->page->Rowid){
 				$this->page->Save(true);
 				_rd($_SERVER['REQUEST_URI']);
 			}else
 				$this->page->Save();
+			*/
 			
+			$this->btnEdit->Visible = true;
+		 	$this->btnSave->Visible = false;
+		 	$this->btnCancel->Visible = false;
+		 	$this->EditMode = false;
+		 	
 		 	$this->Refresh();
 			
 		}

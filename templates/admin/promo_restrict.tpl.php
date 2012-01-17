@@ -99,11 +99,22 @@
 						
 						<?php if($_CONTROL->EditMode): ?>
 <div class="module_task">
-<?php $_CONTROL->ctlCategories->RenderWithError(); ?>
+<table>
+<td class="label">Restrict the promo code</td>
+	<td><?php $_CONTROL->ctlPromoCode->RenderWithError(); ?></td>
+	<td class="label">to apply when</td>
+	<td><?php $_CONTROL->ctlExcept->RenderWithError(); ?></td>
+</table>
+<P>
+<table>
+<td class="label left">Categories:<br><?php $_CONTROL->ctlCategories->RenderWithError(); ?></td>
+<td class="label left">Families:<br><?php $_CONTROL->ctlFamilies->RenderWithError(); ?></td>
+<td class="label left">Classes:<br><?php $_CONTROL->ctlClasses->RenderWithError(); ?></td>
+<td class="label left">Keywords:<br><?php $_CONTROL->ctlKeywords->RenderWithError(); ?></td>
+<td class="label left">Product Codes:<br><?php $_CONTROL->ctlProductCodes->RenderWithError(); ?></td>
+</table>
 
-<?php $_CONTROL->ctlFamilies->RenderWithError(); ?>
 
-<?php $_CONTROL->ctlClasses->RenderWithError(); ?>
 
 
 
