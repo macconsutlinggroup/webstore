@@ -2207,21 +2207,21 @@
 		    $this->ctlPromoCode->AddAction(new QChangeEvent() , new QAjaxControlAction($this,"btnChange_click"));
 			$this->ctlPromoCode->AddItem('--Choose Promo Code--', 0);
 		    $objItems= PromoCode::QueryArray(
-				QQ::AndCondition(QQ::Equal(QQN::PromoCode()->Code, 'freeship')),
+				QQ::AndCondition(QQ::Like(QQN::PromoCode()->Lscodes, 'shipping:,%')),
 				QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
 			if ($objItems) foreach ($objItems as $objItem)
 				$this->ctlPromoCode->AddItem('for free shipping', $objItem->Rowid);			
 		    $objItems= PromoCode::QueryArray(
-				QQ::AndCondition(QQ::NotEqual(QQN::PromoCode()->Code, 'freeship')),
+				QQ::AndCondition(QQ::NotLike(QQN::PromoCode()->Lscodes, 'shipping:,%')),
 				QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
 			if ($objItems) foreach ($objItems as $objItem)
-				$this->ctlPromoCode->AddItem('"'.$objItem->Code.'"', $objItem->Rowid);
+				$this->ctlPromoCode->AddItem($objItem->Code, $objItem->Rowid);
 			
 			$this->ctlExcept = new QListBox($this,'ctlExcept');
 		    $this->ctlExcept->Name = "Except";
 		    $this->ctlExcept->CssClass = 'selecttwo';
 			$this->ctlExcept->AddItem('products match the following criteria', 0);
-			$this->ctlExcept->AddItem('matching everything BUT the following criteria', 0);
+			$this->ctlExcept->AddItem('matching everything BUT the following criteria', 1);
 									
 			$this->ctlFamilies = new QListBox($this,'ctlFamilies');
 		    $this->ctlFamilies->CssClass = 'SmallMenu';
@@ -2355,8 +2355,41 @@
 		 
 		 public function btnChange_click()
 		 {
-		 	error_log("changing code to ".$this->ctlPromoCode->SelectedValue);
-		 
+		 	
+		 	$intPromoCode = $this->ctlPromoCode->SelectedValue;
+			if ($intPromoCode<1) return false;
+			
+			$objPromoCode = PromoCode::Load($intPromoCode);
+			$strRestrictions =  $objPromoCode->Lscodes;
+			
+			$arrRestrictions = explode(",",$strRestrictions);
+			
+			$arrCategories = array();
+			$arrFamilies= array();
+			$arrClasses = array();
+			$arrKeywords = array();
+			$arrProducts = array();
+			
+			foreach ($arrRestrictions as $strCode) {
+  
+				if (substr($strCode, 0,7) == "family:") $arrFamilies[] = trim(substr($strCode,7,255));
+				elseif (substr($strCode, 0,6) == "class:") $arrClasses[] = trim(substr($strCode,6,255));
+				elseif (substr($strCode, 0,8) == "keyword:") $arrKeywords[] = trim(substr($strCode,8,255));
+				elseif (substr($strCode, 0,9) == "category:") $arrCategories[] = trim(substr($strCode,9,255));
+				else $arrProducts[] = $strCode;
+           
+        	}  
+        
+			
+			$this->ctlCategories->SelectedValues=$arrCategories;
+			$this->ctlFamilies->SelectedValues=$arrFamilies;
+			$this->ctlClasses->SelectedValues=$arrClasses;
+			$this->ctlKeywords->SelectedValues=$arrKeywords;
+			$this->ctlProductCodes->SelectedValues=$arrProducts;
+
+			$this->ctlExcept->SelectedValue=$objPromoCode->Except;
+
+			$this->Refresh();
 		 
 		 }
 		 
@@ -2387,6 +2420,10 @@
 		 
 		public function btnSave_click($strFormId, $strControlId, $strParameter){
 			
+			$intPromoCode = $this->ctlPromoCode->SelectedValue;
+			if ($intPromoCode<1) return false;
+			
+			//Build restriction string
 			$strRestrictions="";
 			
 			foreach($this->ctlProductCodes->SelectedValues as $strVal)
@@ -2400,7 +2437,17 @@
 			foreach($this->ctlKeywords->SelectedValues as $strVal)
 				$strRestrictions .= ",keyword:".$strVal;
 				
-			$strRestrictions=substr($strRestrictions,1);
+			$strRestrictions=substr($strRestrictions,1); //Our built string starts with a comma, so remove it
+			
+
+			$objPromoCode = PromoCode::Load($intPromoCode);
+
+			//Apply our selections
+			$objPromoCode->Lscodes=$strRestrictions;	
+			$objPromoCode->Except = $this->ctlExcept->SelectedValue;
+			
+			$objPromoCode->Save();
+			
 			/*			
 			if(!$this->page->Rowid)
 				if($tpage = CustomPage::LoadByKey($this->txtPageKey->Text)){

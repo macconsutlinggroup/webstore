@@ -428,6 +428,10 @@ color:#000;
 font-size:14px;
 text-align:left;
 }
+
+.listboxReset { font-family:  helvetica; font-size: 9pt; color: #000000; text-shadow: 0px;}
+
+
 .extra_height{
 	height: 150px;
 }
@@ -543,12 +547,10 @@ color: #fff;
 text-shadow: 1px 1px 1px #000;
 }
 
-.table_base a, .table_base .page a, #c11 a, #c6 a { 
+.table_base a, .table_base .page a { 
 color: #fff;
 text-shadow: 1px 1px 1px #000;
 }
-
-#c11 .page, #c11 .arrow, #c11 .break, #c11 .ellipsis, #c6 .page, #c6 .arrow, #c6 .break, #c6 .ellipsis { margin: 0 3px; }
 
 .wide {
 width: 890px;
