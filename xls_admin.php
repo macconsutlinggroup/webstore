@@ -2220,6 +2220,7 @@
 			$this->ctlExcept = new QListBox($this,'ctlExcept');
 		    $this->ctlExcept->Name = "Except";
 		    $this->ctlExcept->CssClass = 'selecttwo';
+		    $this->ctlExcept->Enabled = false;
 			$this->ctlExcept->AddItem('products match the following criteria', 0);
 			$this->ctlExcept->AddItem('matching everything BUT the following criteria', 1);
 									
@@ -2228,6 +2229,7 @@
 		    $this->ctlFamilies->SetCustomAttribute('size', 9);
 		    $this->ctlFamilies->SetCustomAttribute('multiple','yes');
 		    $this->ctlFamilies->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlFamilies->Enabled = false;
 		    $this->ctlFamilies->Name = "Families";
 		    $this->ctlFamilies->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
 		    $this->ctlFamilies->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
@@ -2241,6 +2243,7 @@
 		    $this->ctlClasses->SetCustomAttribute('size', 9);
 		    $this->ctlClasses->SetCustomAttribute('multiple','yes');
 		    $this->ctlClasses->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlClasses->Enabled = false;
 		    $this->ctlClasses->Name = "Families";
 		    $this->ctlClasses->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
 		    $this->ctlClasses->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));		    
@@ -2264,6 +2267,7 @@
 		    $this->ctlCategories->SetCustomAttribute('size', 9);
 		    $this->ctlCategories->SetCustomAttribute('multiple','yes');
 		    $this->ctlCategories->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlCategories->Enabled = false;
 		    $this->ctlCategories->Name = "Categories";
 		    $this->ctlCategories->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
 		    $this->ctlCategories->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
@@ -2282,6 +2286,7 @@
 		    $this->ctlKeywords->SetCustomAttribute('size', 9);
 		    $this->ctlKeywords->SetCustomAttribute('multiple','yes');
 		    $this->ctlKeywords->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlKeywords->Enabled = false;
 		    $this->ctlKeywords->Name = "Keywords";
 		    $this->ctlKeywords->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
 		    $this->ctlKeywords->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
@@ -2309,6 +2314,7 @@
 		    $this->ctlProductCodes->SetCustomAttribute('size', 9);
 		    $this->ctlProductCodes->SetCustomAttribute('multiple','yes');
 		    $this->ctlProductCodes->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlProductCodes->Enabled = false;
 		    $this->ctlProductCodes->Name = "Productcodes";
 		    $this->ctlProductCodes->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
 		    $this->ctlProductCodes->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
@@ -2357,7 +2363,23 @@
 		 {
 		 	
 		 	$intPromoCode = $this->ctlPromoCode->SelectedValue;
-			if ($intPromoCode<1) return false;
+			if ($intPromoCode<1)
+			{
+				$this->ctlExcept->Enabled = false;
+				$this->ctlCategories->Enabled = false;
+				$this->ctlFamilies->Enabled = false;
+				$this->ctlClasses->Enabled = false;
+				$this->ctlKeywords->Enabled = false;
+				$this->ctlProductCodes->Enabled = false;
+				
+				$this->ctlExcept->SelectedValue=0;
+				$this->ctlCategories->SelectedValues=null;
+				$this->ctlFamilies->SelectedValues=null;
+				$this->ctlClasses->SelectedValues=null;
+				$this->ctlKeywords->SelectedValues=null;
+				$this->ctlProductCodes->SelectedValues=null;
+				return false;
+			}
 			
 			$objPromoCode = PromoCode::Load($intPromoCode);
 			$strRestrictions =  $objPromoCode->Lscodes;
@@ -2380,6 +2402,12 @@
            
         	}  
         
+			$this->ctlExcept->Enabled = true;
+			$this->ctlCategories->Enabled = true;
+			$this->ctlFamilies->Enabled = true;
+			$this->ctlClasses->Enabled = true;
+			$this->ctlKeywords->Enabled = true;
+			$this->ctlProductCodes->Enabled = true;
 			
 			$this->ctlCategories->SelectedValues=$arrCategories;
 			$this->ctlFamilies->SelectedValues=$arrFamilies;
@@ -2482,6 +2510,9 @@
 		 	$this->btnCancel->Visible = false;
 		 	$this->EditMode = false;
 		 	
+		 	$this->resetForm();
+
+		 	
 		 	$this->Refresh();
 			
 		}
@@ -2491,6 +2522,9 @@
 		 	$this->btnSave->Visible = false;
 		 	$this->btnCancel->Visible = false;
 		 	$this->EditMode = false;
+		 	
+		 	$this->resetForm();
+				
 		 	//$this->Refresh();
 						
 		}
@@ -2513,7 +2547,23 @@
 			$this->btnCancel->Visible = true;
 		}
 		 
-		 
+		public function resetForm()
+		{
+			$this->ctlExcept->Enabled = false;
+			$this->ctlCategories->Enabled = false;
+			$this->ctlFamilies->Enabled = false;
+			$this->ctlClasses->Enabled = false;
+			$this->ctlKeywords->Enabled = false;
+			$this->ctlProductCodes->Enabled = false;
+			
+			$this->ctlPromoCode->SelectedValue=0;
+			$this->ctlExcept->SelectedValue=0;
+			$this->ctlCategories->SelectedValues=null;
+			$this->ctlFamilies->SelectedValues=null;
+			$this->ctlClasses->SelectedValues=null;
+			$this->ctlKeywords->SelectedValues=null;
+			$this->ctlProductCodes->SelectedValues=null;
+		}
 		 
 	}
 	
@@ -4129,13 +4179,6 @@
 			$this->arrFields['Lscodes']['Field'] = new XLSTextBox($this);	
 			$this->arrFields['Lscodes']['Width'] = 90;
 			$this->arrFields['Lscodes']['DisplayFunc'] = "RenderPromoFilters";
-
-			$this->arrFields['Except'] = array('Name' => 'Except');
-			$this->arrFields['Except']['Field'] = new QCheckBox($this); 	
-			$this->arrFields['Except']['DisplayFunc'] = "RenderCheck";
-			$this->arrFields['Except']['Width'] = 20;
-			$this->arrFields['Except']['DefaultValue'] = false;
-
 
 			$this->arrFields['QtyRemaining'] = array('Name' => '# Uses Remain<br>(blank = unlimited)');
 			$this->arrFields['QtyRemaining']['Field'] = new XLSTextBox($this); 	
