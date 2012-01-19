@@ -615,9 +615,14 @@ font-size: 8px;
 }
 
 .SmallMenu {
-height: 160px;
+height: 150px;
 width: auto;
 max-width: 300px;
 
 }
 
+.tip {
+margin-top: 184px;
+margin-left: 10px;
+font-size: 10px;
+}

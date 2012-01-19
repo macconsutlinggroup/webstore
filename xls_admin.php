@@ -4224,6 +4224,9 @@
 		}
 
 		protected function RenderPromoFilters($item){
+		
+			//$strUrl = "xls_admin.php?func=edit&page=paym&subpage=promotasks".admin_sid();
+			//ToDo: be able to hot link directly to editing for this promo code	
 			if (strlen($item)>0)
 				return "<b>Applied</b>";
 			else

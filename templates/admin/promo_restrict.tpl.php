@@ -106,19 +106,17 @@
 	<td><?php $_CONTROL->ctlExcept->RenderWithError(); ?></td>
 </table>
 <P>
+	
+
 <table>
-<td class="label left">Categories:<br><?php $_CONTROL->ctlCategories->RenderWithError(); ?></td>
-<td class="label left">Families:<br><?php $_CONTROL->ctlFamilies->RenderWithError(); ?></td>
-<td class="label left">Classes:<br><?php $_CONTROL->ctlClasses->RenderWithError(); ?></td>
-<td class="label left">Keywords:<br><?php $_CONTROL->ctlKeywords->RenderWithError(); ?></td>
-<td class="label left">Product Codes:<br><?php $_CONTROL->ctlProductCodes->RenderWithError(); ?></td>
+	<td class="label left">Categories:<br><?php $_CONTROL->ctlCategories->RenderWithError(); ?></td>
+	<td class="label left">Families:<br><?php $_CONTROL->ctlFamilies->RenderWithError(); ?></td>
+	<td class="label left">Classes:<br><?php $_CONTROL->ctlClasses->RenderWithError(); ?></td>
+	<td class="label left">Keywords:<br><?php $_CONTROL->ctlKeywords->RenderWithError(); ?></td>
+	<td class="label left">Product Codes:<br><?php $_CONTROL->ctlProductCodes->RenderWithError(); ?></td>
 </table>
 
-
-
-
-
-
+	<div class="tip">Tip: Click in the scrollbar area to avoid accidentally clicking items.</div>
 								
 </div>
 <?php endif; ?>
