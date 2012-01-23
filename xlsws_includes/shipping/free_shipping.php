@@ -168,8 +168,9 @@ class free_shipping extends xlsws_class_shipping {
 			$objPromoCode = PromoCode::LoadByCode("shipping:");
 
 			$bolApplied = true;	
-			foreach ($cart->GetCartItemArray() as $objItem)
-				if (!$objPromoCode->IsProductAffected($objItem)) $bolApplied=false;
+			if ($objPromoCode)
+				foreach ($cart->GetCartItemArray() as $objItem)
+					if (!$objPromoCode->IsProductAffected($objItem)) $bolApplied=false;
 
 			return $bolApplied;
 		

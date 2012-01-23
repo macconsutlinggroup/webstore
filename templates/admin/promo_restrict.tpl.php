@@ -100,7 +100,7 @@
 						<?php if($_CONTROL->EditMode): ?>
 <div class="module_task">
 <table>
-<td class="label">Restrict the promo code</td>
+<td class="label">Set restrictions for</td>
 	<td><?php $_CONTROL->ctlPromoCode->RenderWithError(); ?></td>
 	<td class="label">to apply when</td>
 	<td><?php $_CONTROL->ctlExcept->RenderWithError(); ?></td>

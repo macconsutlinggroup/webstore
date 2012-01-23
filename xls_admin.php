@@ -209,7 +209,7 @@
 	
 	//THE VARIOUS ITEMS IN THE ADMIN DROPDOWN PANEL - CONFIGURATION, SHIPPING, PAYMENT, STATS AND SYSTEM
 	$arrShipTabs = array('shipping' => _sp('Shipping') , 'methods' => _sp('Methods') , 
-		'destinations' =>_sp('Destinations') ,'tier' =>_sp('Shipping Tiers') ,
+		'destinations' =>_sp('Destinations') ,'shippingtasks' =>_sp('Shipping Tasks') ,
 		'countries' =>_sp('Countries') , 'states' =>_sp('States/Regions') );
 	$arrConfigTabs = array('store' => _sp('Store') , 'appear' => _sp('Appearance') , 'sidebars' =>_sp('Sidebars'));
 	$arrPaymentTabs = array('methods' => _sp('Methods') , 'cc' => _sp('Credit Card Types'), 
@@ -1917,6 +1917,420 @@
 		 
 		 
 	}
+
+	class xlsws_admin_edittiers_panel extends QPanel {
+		
+	
+		protected $strMethodCallBack;
+		
+		public $fields;
+		public $helpers = array();
+		
+		
+		protected $objParentObject;
+
+		public $page;
+		
+		public $btnSave;
+		public $btnEdit;
+		public $btnCancel;
+		public $btnDelete;
+		public $btnDeleteConfirm;
+		
+        public $Info = "";
+		
+        
+		public $txtPageKey;
+		public $txtPageTitle;
+		public $txtPageKeywords;
+		public $txtPageDescription;
+		public $txtPageText;
+		public $txtProductTag;
+		
+		public $ctlPromoCode;
+ 		public $ctlExcept;
+        public $ctlCategories;
+        public $ctlFamilies;
+        public $ctlProductCodes;
+        public $ctlClasses;
+        public $ctlKeywords;
+        
+		public $pxyAddNewPage;
+		
+        
+        public $EditMode = false;
+        public $NewMode = false;
+        public $IsShipping = false;
+        public $intShippingRowID = false;
+			
+        
+        
+		public function __construct($objParentControl, $objParentObject, $page , $strMethodCallBack, $strControlId = null) {
+		 	// First, let's call the Parent's __constructor
+		 	try {
+		 		parent::__construct($objParentControl, $strControlId);
+		 	} catch (QCallerException $objExc) {
+		 		$objExc->IncrementOffset();
+		 		throw $objExc;
+		 	}
+	
+		 	// Next, we set the local module object
+		 	$this->objParentObject = $objParentObject;
+		 	$this->page = $page;
+		 	$this->IsShipping = $this->page->Page;
+		 	
+		 	// Let's record the reference to the form's MethodCallBack
+		 	$this->strMethodCallBack = $strMethodCallBack;
+	
+				
+			/*$this->ctlPromoCode = new QListBox($this,'ctlPromoCode');
+		    $this->ctlPromoCode->Name = "PromoCode";
+		    $this->ctlPromoCode->CssClass = 'selectone';
+		    $this->ctlPromoCode->AddAction(new QChangeEvent() , new QAjaxControlAction($this,"btnChange_click"));
+			$this->ctlPromoCode->AddItem('-- Select --', 0);
+		    
+		    if($this->IsShipping) {
+			    $objItems= PromoCode::QueryArray(
+					QQ::AndCondition(QQ::Like(QQN::PromoCode()->Lscodes, 'shipping:,%')),
+					QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
+				if ($objItems) foreach ($objItems as $objItem) {
+						$this->intShippingRowID = $objItem->Rowid;
+						$this->ctlPromoCode->AddItem('free shipping'.($objItem->Code=='shipping:' ? ' (without code)':''),
+							$objItem->Rowid);	
+					}	
+			} else {	
+			    $objItems= PromoCode::QueryArray(
+					QQ::AndCondition(QQ::NotLike(QQN::PromoCode()->Lscodes, 'shipping:,%')),
+					QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
+				if ($objItems) foreach ($objItems as $objItem)
+					$this->ctlPromoCode->AddItem($objItem->Code, $objItem->Rowid);
+			}
+			$this->ctlExcept = new QListBox($this,'ctlExcept');
+		    $this->ctlExcept->Name = "Except";
+		    $this->ctlExcept->CssClass = 'selecttwo';
+		    $this->ctlExcept->Enabled = false;
+			$this->ctlExcept->AddItem('products match the following criteria', 0);
+			$this->ctlExcept->AddItem('matching everything BUT the following criteria', 1);
+									
+			$this->ctlFamilies = new QListBox($this,'ctlFamilies');
+		    $this->ctlFamilies->CssClass = 'SmallMenu';
+		    $this->ctlFamilies->SetCustomAttribute('size', 9);
+		    $this->ctlFamilies->SetCustomAttribute('multiple','yes');
+		    $this->ctlFamilies->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlFamilies->Enabled = false;
+		    $this->ctlFamilies->Name = "Families";
+		    $this->ctlFamilies->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
+		    $this->ctlFamilies->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
+		    $objItems= Family::LoadAll(QQ::Clause(QQ::OrderBy(QQN::Family()->Family)));
+			if ($objItems) foreach ($objItems as $objItem) {
+				$this->ctlFamilies->AddItem($objItem->Family, $objItem->Family);
+			}
+
+			$this->ctlClasses = new QListBox($this,'ctlClasses');
+		    $this->ctlClasses->CssClass = 'SmallMenu';
+		    $this->ctlClasses->SetCustomAttribute('size', 9);
+		    $this->ctlClasses->SetCustomAttribute('multiple','yes');
+		    $this->ctlClasses->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlClasses->Enabled = false;
+		    $this->ctlClasses->Name = "Families";
+		    $this->ctlClasses->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
+		    $this->ctlClasses->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));		    
+		    $objItems= Product::QueryArray(
+				    QQ::AndCondition(
+		            QQ::NotEqual(QQN::Product()->ClassName, ''),
+		            QQ::IsNotNull(QQN::Product()->ClassName)
+		        ),
+		    	QQ::Clause(
+		    		QQ::GroupBy(QQN::Product()->ClassName),
+		    		QQ::OrderBy(QQN::Product()->ClassName)
+		    	));
+
+			if ($objItems) foreach ($objItems as $objItem) {
+				$this->ctlClasses->AddItem($objItem->ClassName, $objItem->ClassName);
+			}
+
+
+			$this->ctlCategories = new QListBox($this,'ctlCategories');
+		    $this->ctlCategories->CssClass = 'SmallMenu';
+		    $this->ctlCategories->SetCustomAttribute('size', 9);
+		    $this->ctlCategories->SetCustomAttribute('multiple','yes');
+		    $this->ctlCategories->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlCategories->Enabled = false;
+		    $this->ctlCategories->Name = "Categories";
+		    $this->ctlCategories->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
+		    $this->ctlCategories->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
+		    $objItems= Category::QueryArray(
+				QQ::AndCondition(
+					QQ::Equal(QQN::Category()->Parent, 0)
+				),
+				QQ::Clause(QQ::OrderBy(QQN::Category()->Name))
+			);
+			if ($objItems) foreach ($objItems as $objItem) {
+				$this->ctlCategories->AddItem($objItem->Name, $objItem->Name);
+			}
+				
+			$this->ctlKeywords = new QListBox($this,'ctlKeywords');
+		    $this->ctlKeywords->CssClass = 'SmallMenu';
+		    $this->ctlKeywords->SetCustomAttribute('size', 9);
+		    $this->ctlKeywords->SetCustomAttribute('multiple','yes');
+		    $this->ctlKeywords->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlKeywords->Enabled = false;
+		    $this->ctlKeywords->Name = "Keywords";
+		    $this->ctlKeywords->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
+		    $this->ctlKeywords->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
+		    $arrKeywords=array();
+		    $objItems= Product::QueryArray(
+				    QQ::AndCondition(QQ::NotEqual(QQN::Product()->WebKeyword1, ''),QQ::IsNotNull(QQN::Product()->WebKeyword1)),
+		    		QQ::Clause(QQ::GroupBy(QQN::Product()->WebKeyword1), QQ::OrderBy(QQN::Product()->WebKeyword1)));
+			if ($objItems) foreach ($objItems as $objItem) $arrKeywords[]=strtolower($objItem->WebKeyword1);
+		    $objItems= Product::QueryArray(
+				    QQ::AndCondition(QQ::NotEqual(QQN::Product()->WebKeyword2, ''),QQ::IsNotNull(QQN::Product()->WebKeyword2)),
+		    		QQ::Clause(QQ::GroupBy(QQN::Product()->WebKeyword2), QQ::OrderBy(QQN::Product()->WebKeyword2)));
+			if ($objItems) foreach ($objItems as $objItem) $arrKeywords[]=strtolower($objItem->WebKeyword2);
+		    $objItems= Product::QueryArray(
+				    QQ::AndCondition(QQ::NotEqual(QQN::Product()->WebKeyword3, ''),QQ::IsNotNull(QQN::Product()->WebKeyword3)),
+		    		QQ::Clause(QQ::GroupBy(QQN::Product()->WebKeyword3), QQ::OrderBy(QQN::Product()->WebKeyword3)));
+			if ($objItems) foreach ($objItems as $objItem) $arrKeywords[]=strtolower($objItem->WebKeyword3);
+			$arrKeywords=array_unique($arrKeywords);
+			sort($arrKeywords);
+			foreach ($arrKeywords as $strKeyword) 
+				$this->ctlKeywords->AddItem($strKeyword, $strKeyword);
+
+
+			$this->ctlProductCodes = new QListBox($this,'ctlProductCodes');
+		    $this->ctlProductCodes->CssClass = 'SmallMenu';
+		    $this->ctlProductCodes->SetCustomAttribute('size', 9);
+		    $this->ctlProductCodes->SetCustomAttribute('multiple','yes');
+		    $this->ctlProductCodes->SelectionMode = QSelectionMode::Multiple;
+		    $this->ctlProductCodes->Enabled = false;
+		    $this->ctlProductCodes->Name = "Productcodes";
+		    $this->ctlProductCodes->AddAction(new QMouseDownEvent(),new QJavaScriptAction('GetCurrentListValues(this)'));
+		    $this->ctlProductCodes->AddAction(new QChangeEvent(),new QJavaScriptAction('FillListValues(this)'));
+		    $objItems= Product::QueryArray(
+				QQ::AndCondition(
+					QQ::Equal(QQN::Product()->Web, 1),
+					QQ::Equal(QQN::Product()->FkProductMasterId, 0)
+				),
+				QQ::Clause(QQ::OrderBy(QQN::Product()->Code))
+			);
+			if ($objItems) foreach ($objItems as $objItem) {
+				$this->ctlProductCodes->AddItem($objItem->Code, $objItem->Code);
+			}
+*/
+
+		 	$this->btnSave = new QButton($this);
+		 	$this->btnSave->Text = _sp('Save');
+		 	$this->btnSave->CssClass = 'button';
+		 	$this->btnSave->Visible = false;
+		 	$this->btnSave->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnSave_click'));
+		 	$this->btnSave->CausesValidation = true;
+			
+		 	$this->btnCancel = new QButton($this);
+		 	$this->btnCancel->Text = _sp('Cancel');
+		 	$this->btnCancel->Visible = false;
+		 	$this->btnCancel->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnCancel_click'));
+
+		 	$this->btnEdit = new QButton($this);
+		 	$this->btnEdit->Text = _sp('Begin');
+		 	$this->btnEdit->CssClass = 'button admin_edit';
+		 	$this->btnEdit->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
+
+		 	$this->pxyAddNewPage = new QControlProxy($this);
+			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
+			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QTerminateAction());
+		 	
+		 	
+		 	$this->strTemplate = adminTemplate($page->Key.'.tpl.php');
+		 	
+						
+	
+		 	
+		 }
+		 
+		 public function btnChange_click()
+		 {
+		 	
+		 	$intPromoCode = $this->ctlPromoCode->SelectedValue;
+			if ($intPromoCode<1)
+			{
+				$this->ctlExcept->Enabled = false;
+				$this->ctlCategories->Enabled = false;
+				$this->ctlFamilies->Enabled = false;
+				$this->ctlClasses->Enabled = false;
+				$this->ctlKeywords->Enabled = false;
+				$this->ctlProductCodes->Enabled = false;
+				
+				$this->ctlExcept->SelectedValue=0;
+				$this->ctlCategories->SelectedValues=null;
+				$this->ctlFamilies->SelectedValues=null;
+				$this->ctlClasses->SelectedValues=null;
+				$this->ctlKeywords->SelectedValues=null;
+				$this->ctlProductCodes->SelectedValues=null;
+				return false;
+			}
+			
+			$objPromoCode = PromoCode::Load($intPromoCode);
+			$strRestrictions =  $objPromoCode->Lscodes;
+			
+			$arrRestrictions = explode(",",$strRestrictions);
+			
+			$arrCategories = array();
+			$arrFamilies= array();
+			$arrClasses = array();
+			$arrKeywords = array();
+			$arrProducts = array();
+			
+			foreach ($arrRestrictions as $strCode) {
+  
+				if (substr($strCode, 0,7) == "family:") $arrFamilies[] = trim(substr($strCode,7,255));
+				elseif (substr($strCode, 0,6) == "class:") $arrClasses[] = trim(substr($strCode,6,255));
+				elseif (substr($strCode, 0,8) == "keyword:") $arrKeywords[] = trim(substr($strCode,8,255));
+				elseif (substr($strCode, 0,9) == "category:") $arrCategories[] = trim(substr($strCode,9,255));
+				else $arrProducts[] = $strCode;
+           
+        	}  
+        
+			$this->ctlExcept->Enabled = true;
+			$this->ctlCategories->Enabled = true;
+			$this->ctlFamilies->Enabled = true;
+			$this->ctlClasses->Enabled = true;
+			$this->ctlKeywords->Enabled = true;
+			$this->ctlProductCodes->Enabled = true;
+			
+			$this->ctlCategories->SelectedValues=$arrCategories;
+			$this->ctlFamilies->SelectedValues=$arrFamilies;
+			$this->ctlClasses->SelectedValues=$arrClasses;
+			$this->ctlKeywords->SelectedValues=$arrKeywords;
+			$this->ctlProductCodes->SelectedValues=$arrProducts;
+
+			$this->ctlExcept->SelectedValue=$objPromoCode->Except;
+
+			$this->Refresh();
+		 
+		 }
+		 
+		 public function btnEdit_click(){
+		 	
+		 	$this->btnEdit->Visible = false;
+		 	$this->btnSave->Visible = true;
+		 	$this->btnCancel->Visible = true;
+		 	$this->EditMode = true;
+		 	
+
+			/*$this->txtPageKey->Text = $this->page->Key;
+			$this->txtPageTitle->Text = ($this->page->Title == _sp('+ Add new page'))?'':$this->page->Title;
+			$this->txtPageText->Text = $this->page->Page;
+			$this->txtProductTag->Text = $this->page->ProductTag;
+			$this->txtPageKeywords->Text = $this->page->MetaKeywords;
+			$this->txtPageDescription->Text = $this->page->MetaDescription;
+		*/
+		 	$this->Refresh();
+			
+			
+		 	QApplication::ExecuteJavaScript("doRefresh();");
+		 	
+		 }
+		 
+		 
+		 
+		 
+		public function btnSave_click($strFormId, $strControlId, $strParameter){
+			
+			$intPromoCode = $this->ctlPromoCode->SelectedValue;
+			if ($intPromoCode<1) return false;
+			
+			//Build restriction string
+			$strRestrictions="";
+			
+			foreach($this->ctlProductCodes->SelectedValues as $strVal)
+				$strRestrictions .= ",".$strVal;
+			foreach($this->ctlCategories->SelectedValues as $strVal)
+				$strRestrictions .= ",category:".$strVal;
+			foreach($this->ctlFamilies->SelectedValues as $strVal)
+				$strRestrictions .= ",family:".$strVal;
+			foreach($this->ctlClasses->SelectedValues as $strVal)
+				$strRestrictions .= ",class:".$strVal;
+			foreach($this->ctlKeywords->SelectedValues as $strVal)
+				$strRestrictions .= ",keyword:".$strVal;
+				
+			$strRestrictions=substr($strRestrictions,1); //Our built string starts with a comma, so remove it
+			
+
+			$objPromoCode = PromoCode::Load($intPromoCode);
+
+			//Apply our selections
+			$objPromoCode->Lscodes=$strRestrictions;	
+			$objPromoCode->Except = $this->ctlExcept->SelectedValue;
+			
+			if ($this->intShippingRowID == $objPromoCode->Rowid) {
+				$objPromoCode->Lscodes="shipping:,".$strRestrictions;	
+				$this->intShippingRowID = false;
+			}
+				
+			$objPromoCode->Save();
+			
+			
+			$this->btnEdit->Visible = true;
+		 	$this->btnSave->Visible = false;
+		 	$this->btnCancel->Visible = false;
+		 	$this->EditMode = false;
+		 	
+		 	$this->resetForm();
+
+		 	
+		 	$this->Refresh();
+			
+		}
+		 
+		public function btnCancel_click($strFormId, $strControlId, $strParameter){
+		 	$this->btnEdit->Visible = true;
+		 	$this->btnSave->Visible = false;
+		 	$this->btnCancel->Visible = false;
+		 	$this->EditMode = false;
+		 	
+		 	$this->resetForm();
+				
+		 	//$this->Refresh();
+						
+		}
+		
+
+		public function btnDeleteConfirm_click($strFormId, $strControlId, $strParameter){
+			$this->page->Delete();
+		 	//$this->btnCancel->Visible = false;
+		 	QApplication::ExecuteJavaScript("window.location.reload()");
+			
+		}
+		
+		
+		public function btnDelete_click($strFormId, $strControlId, $strParameter){	
+			$this->btnEdit->Visible = false;
+			$this->btnDelete->Visible = false;	
+			$this->btnDeleteConfirm->SetCustomStyle('padding','0 5px 3px 5px');		
+			$this->btnCancel->SetCustomStyle('padding','0 5px 3px 5px');													
+			$this->btnDeleteConfirm->Visible = true;
+			$this->btnCancel->Visible = true;
+		}
+		 
+		public function resetForm()
+		{
+			$this->ctlExcept->Enabled = false;
+			$this->ctlCategories->Enabled = false;
+			$this->ctlFamilies->Enabled = false;
+			$this->ctlClasses->Enabled = false;
+			$this->ctlKeywords->Enabled = false;
+			$this->ctlProductCodes->Enabled = false;
+			
+			$this->ctlPromoCode->SelectedValue=0;
+			$this->ctlExcept->SelectedValue=0;
+			$this->ctlCategories->SelectedValues=null;
+			$this->ctlFamilies->SelectedValues=null;
+			$this->ctlClasses->SelectedValues=null;
+			$this->ctlKeywords->SelectedValues=null;
+			$this->ctlProductCodes->SelectedValues=null;
+		}
+		 
+	}
 	
 	
 	/* underpinning panel for tasks that require criteria to run
@@ -2181,6 +2595,8 @@
         
         public $EditMode = false;
         public $NewMode = false;
+        public $IsShipping = false;
+        public $intShippingRowID = false;
 			
         
         
@@ -2196,6 +2612,7 @@
 		 	// Next, we set the local module object
 		 	$this->objParentObject = $objParentObject;
 		 	$this->page = $page;
+		 	$this->IsShipping = $this->page->Page;
 		 	
 		 	// Let's record the reference to the form's MethodCallBack
 		 	$this->strMethodCallBack = $strMethodCallBack;
@@ -2205,18 +2622,24 @@
 		    $this->ctlPromoCode->Name = "PromoCode";
 		    $this->ctlPromoCode->CssClass = 'selectone';
 		    $this->ctlPromoCode->AddAction(new QChangeEvent() , new QAjaxControlAction($this,"btnChange_click"));
-			$this->ctlPromoCode->AddItem('--Choose Promo Code--', 0);
-		    $objItems= PromoCode::QueryArray(
-				QQ::AndCondition(QQ::Like(QQN::PromoCode()->Lscodes, 'shipping:,%')),
-				QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
-			if ($objItems) foreach ($objItems as $objItem)
-				$this->ctlPromoCode->AddItem('for free shipping', $objItem->Rowid);			
-		    $objItems= PromoCode::QueryArray(
-				QQ::AndCondition(QQ::NotLike(QQN::PromoCode()->Lscodes, 'shipping:,%')),
-				QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
-			if ($objItems) foreach ($objItems as $objItem)
-				$this->ctlPromoCode->AddItem($objItem->Code, $objItem->Rowid);
-			
+			$this->ctlPromoCode->AddItem('-- Select --', 0);
+		    
+		    if($this->IsShipping) {
+			    $objItems= PromoCode::QueryArray(
+					QQ::AndCondition(QQ::Like(QQN::PromoCode()->Lscodes, 'shipping:,%')),
+					QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
+				if ($objItems) foreach ($objItems as $objItem) {
+						$this->intShippingRowID = $objItem->Rowid;
+						$this->ctlPromoCode->AddItem('free shipping'.($objItem->Code=='shipping:' ? ' (without code)':''),
+							$objItem->Rowid);	
+					}	
+			} else {	
+			    $objItems= PromoCode::QueryArray(
+					QQ::AndCondition(QQ::NotLike(QQN::PromoCode()->Lscodes, 'shipping:,%')),
+					QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
+				if ($objItems) foreach ($objItems as $objItem)
+					$this->ctlPromoCode->AddItem($objItem->Code, $objItem->Rowid);
+			}
 			$this->ctlExcept = new QListBox($this,'ctlExcept');
 		    $this->ctlExcept->Name = "Except";
 		    $this->ctlExcept->CssClass = 'selecttwo';
@@ -2474,36 +2897,13 @@
 			$objPromoCode->Lscodes=$strRestrictions;	
 			$objPromoCode->Except = $this->ctlExcept->SelectedValue;
 			
+			if ($this->intShippingRowID == $objPromoCode->Rowid) {
+				$objPromoCode->Lscodes="shipping:,".$strRestrictions;	
+				$this->intShippingRowID = false;
+			}
+				
 			$objPromoCode->Save();
 			
-			/*			
-			if(!$this->page->Rowid)
-				if($tpage = CustomPage::LoadByKey($this->txtPageKey->Text)){
-					_qalert(sprintf(_sp("Another page already exists with key %s. Please choose a new key.") , $this->txtPageKey->Text));
-					return;
-				}
-					
-			
-			$this->page->Key = $this->txtPageKey->Text;
-			$this->page->Title = stripslashes($this->txtPageTitle->Text);
-			//error_log($this->txtPageText->Text);
-			$this->page->Page = stripslashes($this->txtPageText->Text);
-			$this->page->ProductTag = $this->txtProductTag->Text;
-			$this->page->MetaKeywords = stripslashes($this->txtPageKeywords->Text);
-			$this->page->MetaDescription = stripslashes($this->txtPageDescription->Text);
-			*/
-		 	error_log($strRestrictions);
-		 	
-			//if($field->SelectionMode == QSelectionMode::Multiple)
-		 	//			$config->Value= implode("\n" , $field->SelectedValues);
-			
-			/*
-			if(!$this->page->Rowid){
-				$this->page->Save(true);
-				_rd($_SERVER['REQUEST_URI']);
-			}else
-				$this->page->Save();
-			*/
 			
 			$this->btnEdit->Visible = true;
 		 	$this->btnSave->Visible = false;
@@ -2624,7 +3024,7 @@
 			
 			$pages = CustomPage::QueryArray(QQ::All() , QQ::Clause(QQ::OrderBy(QQN::CustomPage()->Title)));
 			
-			foreach($pages as $page){ error_log(print_r($page,true));
+			foreach($pages as $page){ 
 				$this->cpagePnls[$page->Rowid] = new xlsws_admin_cpage_panel($this, $this , $page , "pageDone");
 			}
 
@@ -4127,8 +4527,10 @@
 	* see class xlsws_admin_generic_edit_form for further specs
 	*/		
 	
-		class xlsws_admin_promo extends xlsws_admin_generic_edit_form{
-		protected function Form_Create(){
+	class xlsws_admin_promo extends xlsws_admin_generic_edit_form {
+	
+		protected function Form_Create() {
+		
 			$this->arrTabs = $GLOBALS['arrPaymentTabs'];
 			$this->currentTab = 'promo';
 			
@@ -4353,6 +4755,7 @@
 			$page = new CustomPage();
 			$page->Title = _sp('Set Promo Code Restrictions');
 			$page->Key = "promo_restrict";
+			$page->Page = 'promocodes';
 			$this->configPnls[0] = new xlsws_admin_task_promorestrict_panel($this, $this , $page , "pageDone");
 
 			$page = new CustomPage();
@@ -4363,6 +4766,99 @@
 			$page = new CustomPage();
 			$page->Title = _sp('Purge Used Promo Codes');
 			$page->Key = "promo_remove_used";
+			$this->configPnls[2] = new xlsws_admin_task_panel($this, $this , $page , "pageDone");
+			
+			
+		}
+	
+		
+		function pageDone(){
+			$this->listPages();
+		}
+		
+		
+		public function NewPage(){
+			
+		}
+	
+	
+		
+	}
+	
+	/* class xlsws_admin_promotasks
+	* class to create the main configuration section panel
+	* see api.qcodo.com under Qpanel for methods and parameters
+	*/		
+	class xlsws_admin_shippingtasks extends xlsws_admin {
+		
+
+		protected $btnCancel;
+		protected $btnSave;
+		protected $btnDelete;
+		
+		protected $configPnls;
+		
+		public $page;
+		
+		public $pxyAddNewPage;
+		
+		
+		protected function Form_Create(){
+			parent::Form_Create();
+			
+			$this->arrTabs = $GLOBALS['arrShipTabs'];
+			$this->currentTab = 'shippingtasks';
+
+
+			$this->page = new CustomPage();
+			
+			
+			$this->pxyAddNewPage = new QControlProxy($this);
+			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QServerAction('NewPage'));
+			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QTerminateAction());
+			
+	        
+			
+			//$this->btnEdit = new QButton($this->dtrConfigs);
+			//$this->btnEdit->Text = _sp("Edit");
+			$this->btnCancel = new QButton($this);
+			$this->btnCancel->Text = _sp("Cancel");
+			$this->btnCancel->CssClass = 'admin_cancel';
+			$this->btnCancel->AddAction( new QClickEvent() , new QAjaxAction('btnCancel_Click'));
+			
+			
+			
+			$this->btnSave = new QButton($this);
+			$this->btnSave->Text = _sp("Save");
+			$this->btnSave->CssClass = 'admin_save';
+			$this->btnSave->AddAction( new QClickEvent() , new QServerAction('btnSave_Click'));
+			$this->btnSave->CausesValidation = true;
+			
+			$this->listPages();
+
+
+		}
+		
+	
+		
+		protected function listPages(){
+
+			
+			$page = new CustomPage();
+			$page->Title = _sp('Define Tiers for Tier Based Shipping');
+			$page->Key = "ship_define_tiers";
+			$this->configPnls[0] = new xlsws_admin_edittiers_panel($this, $this , $page , "pageDone");
+
+
+			$page = new CustomPage();
+			$page->Title = _sp('Set Free Shipping Restrictions');
+			$page->Key = "promo_restrict";
+			$page->Page = 'shipping';
+			$this->configPnls[1] = new xlsws_admin_task_promorestrict_panel($this, $this , $page , "pageDone");
+
+			$page = new CustomPage();
+			$page->Title = _sp('Batch Change Countries and States/Regions');
+			$page->Key = "ship_modify_cities_countries";
 			$this->configPnls[2] = new xlsws_admin_task_panel($this, $this , $page , "pageDone");
 			
 			
@@ -5493,6 +5989,10 @@
 					xlsws_admin_states::Run('xlsws_admin_states' , adminTemplate('edit.tpl.php'));
 					break;
 					
+				case "shippingtasks":
+					xlsws_admin_promotasks::Run('xlsws_admin_shippingtasks' , adminTemplate('config.tpl.php'));
+					break;
+
 				case "tier":
 					xlsws_admin_tier::Run('xlsws_admin_tier' , adminTemplate('edit.tpl.php'));
 					break;
@@ -5524,7 +6024,6 @@
 					xlsws_admin_promo::Run('xlsws_admin_promo' , adminTemplate('edit.tpl.php'));
 					break;
 				case "promotasks":
-					//xlsws_admin_chart::Run('xlsws_admin_chart' , adminTemplate('chart.tpl.php'));
 					xlsws_admin_promotasks::Run('xlsws_admin_promotasks' , adminTemplate('config.tpl.php'));
 					break;
 				default:
