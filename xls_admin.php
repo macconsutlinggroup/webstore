@@ -2650,8 +2650,8 @@
 		    
 		    if($this->IsShipping) {
 				$this->ctlExcept->AddItem('all cart products match the following criteria', 0);
-				$this->ctlExcept->AddItem('all cart products DO NOT match the criteria', 1);
 				$this->ctlExcept->AddItem('at least one cart product matches the criteria', 2);
+				$this->ctlExcept->AddItem('all cart products DO NOT match the criteria', 1);
 			}
 			else {
 				$this->ctlExcept->AddItem('products match the following criteria', 0);
@@ -2825,7 +2825,7 @@
 			
 			$objPromoCode = PromoCode::Load($intPromoCode);
 			$strRestrictions =  $objPromoCode->Lscodes;
-			error_log(print_r($objPromoCode,true));
+			
 			$arrRestrictions = explode(",",$strRestrictions);
 			
 			$arrCategories = array();
@@ -2856,7 +2856,7 @@
 			$this->ctlClasses->SelectedValues=$arrClasses;
 			$this->ctlKeywords->SelectedValues=$arrKeywords;
 			$this->ctlProductCodes->SelectedValues=$arrProducts;
-error_log("current set at ".$objPromoCode->Except);
+
 			$this->ctlExcept->SelectedValue=$objPromoCode->Except;
 			
 		}

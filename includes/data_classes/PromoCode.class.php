@@ -59,7 +59,7 @@ class PromoCode extends PromoCodeGen {
 		return false;
 	}
 
-	protected function IsExcept() {
+	public function IsExcept() {
 		if ($this->intExcept==1)
 			return true;
 		return false;
@@ -79,7 +79,7 @@ class PromoCode extends PromoCodeGen {
 	
 	
 	protected function IsShipping() {
-		if ($this->LsCodeArray[0]=="free_shipping:")
+		if ($this->LsCodeArray[0]=="shipping:")
 			return true;
 		return false;
 	}
@@ -229,7 +229,7 @@ class PromoCode extends PromoCodeGen {
 				return $this->IsEnabled();
 
 			case 'Except':
-				return $this->IsExcept();
+				return $this->intExcept;
 
 			case 'HasRemaining':
 				return $this->HasRemaining();
