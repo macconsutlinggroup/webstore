@@ -36,7 +36,6 @@ class free_shipping extends xlsws_class_shipping {
 
 		if(isset($config['label']))
 			return $config['label'];
-
 		return $this->admin_name();
 	}
 
@@ -79,7 +78,7 @@ class free_shipping extends xlsws_class_shipping {
 		$ret['qty_remaining']->Text = '';
 		$ret['qty_remaining']->ToolTip = _sp('If using Promo Code, how many times can this be used (blank=unlimited).');
 
-		$ret['restrictions'] = new XLSTextBox($objParent);
+		/*$ret['restrictions'] = new XLSTextBox($objParent);
 		$ret['restrictions']->Name = _sp('Optional Product Restrictions');
 		$ret['restrictions']->Text = '';
 		$ret['restrictions']->ToolTip = _sp('Use same syntax as Promo Codes. May be used with Promo Code or without.');
@@ -90,7 +89,7 @@ class free_shipping extends xlsws_class_shipping {
 		$ret['except']->RemoveAllItems();
   		$ret['except']->AddItem(_sp("Only products that meet the set criteria") , 0);
   		$ret['except']->AddItem(_sp("All products except those that meet the set criteria") , 1);
-  			
+  		*/	
            		
 		$ret['product'] = new XLSTextBox($objParent);
 		$ret['product']->Name = _sp('LightSpeed Product Code (case sensitive)');
@@ -103,11 +102,24 @@ class free_shipping extends xlsws_class_shipping {
 
 	public function adminLoadFix($obj) {
 	
-		//Since we may be decrementing the qty_remaining on checkout, put the value here
-		if (strlen($obj->fields['promocode']->Text)>0) {
+		//Since we are syncing with PromoCodes table, put the value here		
+		
+		//If there's a promo code entered, is it one already in the table?
+		if (strlen($obj->fields['promocode']->Text)>0)
 			$objPromoCode = PromoCode::LoadByCodeShipping($obj->fields['promocode']->Text);
+		
+		//If not, do we have one with the class name?
+		if (!$objPromoCode) 
+			$objPromoCode = PromoCode::LoadByCodeShipping(get_class($this).":");
+
+		if ($objPromoCode) {
+
 			$obj->fields['qty_remaining']->Text=$objPromoCode->QtyRemaining;
 			if ($objPromoCode->QtyRemaining==-1) $obj->fields['qty_remaining']->Text='';
+			$obj->fields['startdate']->Text=$objPromoCode->ValidFrom;
+			$obj->fields['enddate']->Text=$objPromoCode->ValidUntil;
+			$obj->fields['rate']->Text=$objPromoCode->Threshold;
+			
 		}
 		
 		return;
@@ -129,7 +141,7 @@ class free_shipping extends xlsws_class_shipping {
 	}
 
 	public function total($fields, $cart, $country = '', $zipcode = '', $state = '', $city = '', $address2 = '', $address1 = '', $company = '', $lname = '', $fname = '') {
-		$config = $this->getConfigValues('free_shipping');
+		$config = $this->getConfigValues(get_class($this));
 
 		$price = 0;
 
@@ -162,16 +174,18 @@ class free_shipping extends xlsws_class_shipping {
 		if (strlen($vals['enddate'])>0 && $vals['enddate'] != "0000-00-00")
 			if ($vals['enddate']<date("Y-m-d")) return false;
 
-		if (strlen($vals['restrictions'])>0 && strlen($vals['promocode']) == 0) {	
+		$objPromoCode = PromoCode::LoadByCode(get_class($this).":");
+		if ($objPromoCode)
+			if ($objPromoCode->Lscodes != "shipping:,") {	
 			//This is restriction without actually using a code
 			$cart = Cart::GetCart();			
-			$objPromoCode = PromoCode::LoadByCode("shipping:");
-
+			
 			$bolApplied = true;	
+			
 			if ($objPromoCode)
 				foreach ($cart->GetCartItemArray() as $objItem)
 					if (!$objPromoCode->IsProductAffected($objItem)) $bolApplied=false;
-
+						elseif ($objPromoCode->Except==2) return true; //Scenario if just one item qualifies the shipping
 			return $bolApplied;
 		
 		}
@@ -192,6 +206,10 @@ class free_shipping extends xlsws_class_shipping {
 		return true;
 	}
 	
+	public function install() {
+	
+	
+	}
 	public function remove() {
 	
 		//When we're turning this module off, on our way out the door....
@@ -200,40 +218,60 @@ class free_shipping extends xlsws_class_shipping {
 	}
 
 	private function syncPromoCode($vals) {
-	
 		
-		$config = $this->getConfigValues('free_shipping');
+		$config = $this->getConfigValues(get_class($this));
+		$strPromoCode=$vals['promocode']->Text; //Entered promo code
 		
-		if ($config['promocode'] != $vals['promocode']->Text)
-			PromoCode::DeleteShippingPromoCodes();
+		//If there's a promo code entered from last time, is it one already in the table?
+		if (strlen($config['promocode'])>0)
+			$objPromoCode = PromoCode::LoadByCodeShipping($config['promocode']);
 		
-		$strPromoCode=$vals['promocode']->Text;
-		if ($strPromoCode=='' && strlen($vals['restrictions']->Text)>0)
-			$strPromoCode="shipping:";
+		//If not, do we have one with the class name we need to update?
+		if (!$objPromoCode) 
+			$objPromoCode = PromoCode::LoadByCodeShipping(get_class($this).":");
 
-
-		if (strlen($strPromoCode)>0) {
-			$objPromoCode = PromoCode::LoadByCodeShipping($strPromoCode);
-			if (!$objPromoCode)
-				$objPromoCode = new PromoCode;
-						
-			$objPromoCode->ValidFrom = $vals['startdate']->Text;
-			$objPromoCode->ValidUntil = $vals['enddate']->Text;
-			$objPromoCode->Code = $strPromoCode;
-			$objPromoCode->Enabled = 1; 
-			$objPromoCode->Except = $vals['except']->SelectedValue;
-			$objPromoCode->Lscodes = "shipping:,".$vals['restrictions']->Text;
-			$objPromoCode->Amount = 0; 
-			$objPromoCode->Type = 1; //Needs to be 0% so UpdatePromoCode() returns valid test 
-			$objPromoCode->Threshold = ($vals['rate']->Text == "" ? "0" : $vals['rate']->Text);
-			if ($vals['qty_remaining']->Text=='')
-				$objPromoCode->QtyRemaining = -1;
-			else
-				$objPromoCode->QtyRemaining = $vals['qty_remaining']->Text;
+					
+		//Test for the scenario we've blanked out the fields, and we don't have any restrictions set
+		//If this passes, we want to just delete the promo code entry completely	
+		if (	strlen($vals['promocode']->Text)==0 &&
+				strlen($vals['startdate']->Text)==0 &&
+				strlen($vals['enddate']->Text)==0 &&
+				strlen($vals['qty_remaining']->Text)==0) {
+			if ($objPromoCode)
+				if ($objPromoCode->Lscodes=="shipping:,") {
+					$objPromoCode->Enabled=0;
+				}
 			
-			$objPromoCode->Save();
-	
 		}
+		
+			
+		if ($strPromoCode=='')
+			$strPromoCode=get_class($this).":";
+
+
+		if (!$objPromoCode) { //If we're this far without an object, create one
+			$objPromoCode = new PromoCode;
+			$objPromoCode->Lscodes = "shipping:,";
+			$objPromoCode->Except = 0;
+			$objPromoCode->Enabled = 1; 
+		}
+
+					
+		$objPromoCode->ValidFrom = $vals['startdate']->Text;
+		$objPromoCode->ValidUntil = $vals['enddate']->Text;
+		$objPromoCode->Code = $strPromoCode;
+
+		$objPromoCode->Amount = 0; 
+		$objPromoCode->Type = 1; //Needs to be 0% so UpdatePromoCode() returns valid test 
+		$objPromoCode->Threshold = ($vals['rate']->Text == "" ? "0" : $vals['rate']->Text);
+		if ($vals['qty_remaining']->Text=='')
+			$objPromoCode->QtyRemaining = -1;
+		else
+			$objPromoCode->QtyRemaining = $vals['qty_remaining']->Text;
+
+		$objPromoCode->Save();
+	
+		
 	
 	}
 	

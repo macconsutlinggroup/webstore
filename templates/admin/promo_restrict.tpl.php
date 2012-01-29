@@ -92,9 +92,9 @@
 							<div style="float:right">
 							
 							<?php if(!$_CONTROL->NewMode): ?>
-								<?php $_CONTROL->btnEdit->Render('CssClass=button rounded'); ?>
+								<?php $_CONTROL->btnEdit->Render(); ?>
 							<?php endif; ?>
-								<?php $_CONTROL->btnSave->Render('CssClass=button rounded'); ?><?php $_CONTROL->btnCancel->Render('CssClass=button rounded'); ?></div> 
+								<?php $_CONTROL->btnSave->Render(); ?><?php $_CONTROL->btnCancel->Render(); ?></div> 
 						</div>
 						
 						<?php if($_CONTROL->EditMode): ?>

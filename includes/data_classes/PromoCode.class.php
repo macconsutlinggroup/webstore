@@ -60,7 +60,7 @@ class PromoCode extends PromoCodeGen {
 	}
 
 	protected function IsExcept() {
-		if ($this->blnExcept)
+		if ($this->intExcept==1)
 			return true;
 		return false;
 	}
@@ -79,7 +79,7 @@ class PromoCode extends PromoCodeGen {
 	
 	
 	protected function IsShipping() {
-		if ($this->LsCodeArray[0]=="shipping:")
+		if ($this->LsCodeArray[0]=="free_shipping:")
 			return true;
 		return false;
 	}
@@ -173,6 +173,32 @@ class PromoCode extends PromoCodeGen {
 					`xlsws_promo_code`
 					WHERE `lscodes` LIKE "shipping:,%"');
 		}
+
+	public static function DisableShippingPromoCodes() {
+			// Get the Database Object for this Class
+			$objDatabase = PromoCode::GetDatabase();
+
+			// Perform the Query
+			$objDatabase->NonQuery('
+				update
+					`xlsws_promo_code`
+					set `enabled`= 0
+					WHERE `lscodes` LIKE "shipping:,%"');
+		}
+
+
+	public static function EnableShippingPromoCodes() {
+			// Get the Database Object for this Class
+			$objDatabase = PromoCode::GetDatabase();
+
+			// Perform the Query
+			$objDatabase->NonQuery('
+				update
+					`xlsws_promo_code`
+					set `enabled`= 1
+					WHERE `lscodes` LIKE "shipping:,%"');;
+		}
+
 
 	
 	/**

@@ -1977,7 +1977,7 @@
 		 	// Next, we set the local module object
 		 	$this->objParentObject = $objParentObject;
 		 	$this->page = $page;
-		 	$this->IsShipping = $this->page->Page;
+		 	$this->IsShipping = ($this->page->Page == "shipping" ? 1 : 0);
 		 	
 		 	// Let's record the reference to the form's MethodCallBack
 		 	$this->strMethodCallBack = $strMethodCallBack;
@@ -2612,7 +2612,7 @@
 		 	// Next, we set the local module object
 		 	$this->objParentObject = $objParentObject;
 		 	$this->page = $page;
-		 	$this->IsShipping = $this->page->Page;
+		 	$this->IsShipping = ($this->page->Page == "shipping" ? 1 : 0);
 		 	
 		 	// Let's record the reference to the form's MethodCallBack
 		 	$this->strMethodCallBack = $strMethodCallBack;
@@ -2622,18 +2622,21 @@
 		    $this->ctlPromoCode->Name = "PromoCode";
 		    $this->ctlPromoCode->CssClass = 'selectone';
 		    $this->ctlPromoCode->AddAction(new QChangeEvent() , new QAjaxControlAction($this,"btnChange_click"));
-			$this->ctlPromoCode->AddItem('-- Select --', 0);
+			
 		    
 		    if($this->IsShipping) {
 			    $objItems= PromoCode::QueryArray(
 					QQ::AndCondition(QQ::Like(QQN::PromoCode()->Lscodes, 'shipping:,%')),
 					QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
+				
 				if ($objItems) foreach ($objItems as $objItem) {
 						$this->intShippingRowID = $objItem->Rowid;
 						$this->ctlPromoCode->AddItem('free shipping'.($objItem->Code=='shipping:' ? ' (without code)':''),
 							$objItem->Rowid);	
-					}	
+					}
+					
 			} else {	
+				$this->ctlPromoCode->AddItem('-- Select --', 0);
 			    $objItems= PromoCode::QueryArray(
 					QQ::AndCondition(QQ::NotLike(QQN::PromoCode()->Lscodes, 'shipping:,%')),
 					QQ::Clause(QQ::OrderBy(QQN::PromoCode()->Code)));
@@ -2644,9 +2647,17 @@
 		    $this->ctlExcept->Name = "Except";
 		    $this->ctlExcept->CssClass = 'selecttwo';
 		    $this->ctlExcept->Enabled = false;
-			$this->ctlExcept->AddItem('products match the following criteria', 0);
-			$this->ctlExcept->AddItem('matching everything BUT the following criteria', 1);
-									
+		    
+		    if($this->IsShipping) {
+				$this->ctlExcept->AddItem('all cart products match the following criteria', 0);
+				$this->ctlExcept->AddItem('all cart products DO NOT match the criteria', 1);
+				$this->ctlExcept->AddItem('at least one cart product matches the criteria', 2);
+			}
+			else {
+				$this->ctlExcept->AddItem('products match the following criteria', 0);
+				$this->ctlExcept->AddItem('matching everything BUT the following criteria', 1);
+			}
+												
 			$this->ctlFamilies = new QListBox($this,'ctlFamilies');
 		    $this->ctlFamilies->CssClass = 'SmallMenu';
 		    $this->ctlFamilies->SetCustomAttribute('size', 9);
@@ -2755,7 +2766,7 @@
 
 		 	$this->btnSave = new QButton($this);
 		 	$this->btnSave->Text = _sp('Save');
-		 	$this->btnSave->CssClass = 'button';
+		 	$this->btnSave->CssClass = 'button rounded';
 		 	$this->btnSave->Visible = false;
 		 	$this->btnSave->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnSave_click'));
 		 	$this->btnSave->CausesValidation = true;
@@ -2763,21 +2774,22 @@
 		 	$this->btnCancel = new QButton($this);
 		 	$this->btnCancel->Text = _sp('Cancel');
 		 	$this->btnCancel->Visible = false;
+		 	$this->btnCancel->CssClass = 'button rounded';
 		 	$this->btnCancel->AddAction(new QClickEvent() , new QServerControlAction($this , 'btnCancel_click'));
 
 		 	$this->btnEdit = new QButton($this);
 		 	$this->btnEdit->Text = _sp('Begin');
-		 	$this->btnEdit->CssClass = 'button admin_edit';
+		 	$this->btnEdit->CssClass = 'button rounded';
 		 	$this->btnEdit->AddAction(new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
 
 		 	$this->pxyAddNewPage = new QControlProxy($this);
 			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QAjaxControlAction($this , 'btnEdit_click'));
 			$this->pxyAddNewPage->AddAction( new QClickEvent() , new QTerminateAction());
 		 	
+		 			
 		 	
 		 	$this->strTemplate = adminTemplate($page->Key.'.tpl.php');
 		 	
-						
 	
 		 	
 		 }
@@ -2785,7 +2797,14 @@
 		 public function btnChange_click()
 		 {
 		 	
-		 	$intPromoCode = $this->ctlPromoCode->SelectedValue;
+			$intPromoCode = $this->ctlPromoCode->SelectedValue;
+			$this->loadCode($intPromoCode);
+			$this->Refresh();
+		 
+		 }
+		 
+		 private function loadCode($intPromoCode) {
+
 			if ($intPromoCode<1)
 			{
 				$this->ctlExcept->Enabled = false;
@@ -2806,7 +2825,7 @@
 			
 			$objPromoCode = PromoCode::Load($intPromoCode);
 			$strRestrictions =  $objPromoCode->Lscodes;
-			
+			error_log(print_r($objPromoCode,true));
 			$arrRestrictions = explode(",",$strRestrictions);
 			
 			$arrCategories = array();
@@ -2837,33 +2856,33 @@
 			$this->ctlClasses->SelectedValues=$arrClasses;
 			$this->ctlKeywords->SelectedValues=$arrKeywords;
 			$this->ctlProductCodes->SelectedValues=$arrProducts;
-
+error_log("current set at ".$objPromoCode->Except);
 			$this->ctlExcept->SelectedValue=$objPromoCode->Except;
-
-			$this->Refresh();
-		 
-		 }
-		 
+			
+		}
+		
 		 public function btnEdit_click(){
 		 	
-		 	$this->btnEdit->Visible = false;
+		 			 	
+			//If this is just for Free Shipping, set the dropdown to this item and activate the boxes
+			if ($this->IsShipping) {
+				if (!$this->intShippingRowID)
+					{
+						QApplication::ExecuteJavaScript("alert('Free Shipping module not activated. Activate first, then return here to set restrictions.');");	
+						return;
+					}
+					$this->ctlPromoCode->SelectedValue=$this->intShippingRowID;
+					 $this->loadCode($this->intShippingRowID);
+				 
+				}	
+				
+			$this->btnEdit->Visible = false;
 		 	$this->btnSave->Visible = true;
 		 	$this->btnCancel->Visible = true;
 		 	$this->EditMode = true;
-		 	
-
-			/*$this->txtPageKey->Text = $this->page->Key;
-			$this->txtPageTitle->Text = ($this->page->Title == _sp('+ Add new page'))?'':$this->page->Title;
-			$this->txtPageText->Text = $this->page->Page;
-			$this->txtProductTag->Text = $this->page->ProductTag;
-			$this->txtPageKeywords->Text = $this->page->MetaKeywords;
-			$this->txtPageDescription->Text = $this->page->MetaDescription;
-		*/
+	
 		 	$this->Refresh();
-			
-			
-		 	QApplication::ExecuteJavaScript("doRefresh();");
-		 	
+					 	
 		 }
 		 
 		 
@@ -2897,13 +2916,18 @@
 			$objPromoCode->Lscodes=$strRestrictions;	
 			$objPromoCode->Except = $this->ctlExcept->SelectedValue;
 			
+			//If we're using the restriction form for Shipping, we need do extra tasks
 			if ($this->intShippingRowID == $objPromoCode->Rowid) {
-				$objPromoCode->Lscodes="shipping:,".$strRestrictions;	
-				$this->intShippingRowID = false;
+				$objPromoCode->Lscodes="shipping:,".$strRestrictions; //Set shipping prefix
+				if(strlen($strRestrictions)==0) //Just in case we've blanked restrictions, make sure it's not wide open
+					$objPromoCode->Except=0;					
 			}
-				
-			$objPromoCode->Save();
-			
+
+			if(strlen($strRestrictions)==0) //Just in case we've blanked restrictions, make sure it's not wide open
+				$objPromoCode->Except=0;
+
+			$objPromoCode->Save(); //otherwise just save promo code table
+							
 			
 			$this->btnEdit->Visible = true;
 		 	$this->btnSave->Visible = false;

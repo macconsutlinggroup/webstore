@@ -17,7 +17,7 @@
 	 * @subpackage GeneratedDataObjects
 	 * @property integer $Rowid the value for intRowid (Read-Only PK)
 	 * @property boolean $Enabled the value for blnEnabled (Not Null)
-	 * @property boolean $Except the value for blnExcept (Not Null)
+	 * @property integer $Except the value for intExcept (Not Null)
 	 * @property string $Code the value for strCode 
 	 * @property integer $Type the value for intType 
 	 * @property string $Amount the value for strAmount (Not Null)
@@ -54,7 +54,7 @@
 		 * Protected member variable that maps to the database column xlsws_promo_code.enabled
 		 * @var boolean blnEnabled
 		 */
-		protected $blnExcept;
+		protected $intExcept;
 		const ExceptDefault = null;
 
 
@@ -455,7 +455,7 @@
 			$strAliasName = array_key_exists($strAliasPrefix . 'enabled', $strColumnAliasArray) ? $strColumnAliasArray[$strAliasPrefix . 'enabled'] : $strAliasPrefix . 'enabled';
 			$objToReturn->blnEnabled = $objDbRow->GetColumn($strAliasName, 'Bit');
 			$strAliasName = array_key_exists($strAliasPrefix . 'except', $strColumnAliasArray) ? $strColumnAliasArray[$strAliasPrefix . 'except'] : $strAliasPrefix . 'except';
-			$objToReturn->blnExcept = $objDbRow->GetColumn($strAliasName, 'Bit');
+			$objToReturn->intExcept = $objDbRow->GetColumn($strAliasName, 'Integer');
 			$strAliasName = array_key_exists($strAliasPrefix . 'code', $strColumnAliasArray) ? $strColumnAliasArray[$strAliasPrefix . 'code'] : $strAliasPrefix . 'code';
 			$objToReturn->strCode = $objDbRow->GetColumn($strAliasName, 'VarChar');
 			$strAliasName = array_key_exists($strAliasPrefix . 'type', $strColumnAliasArray) ? $strColumnAliasArray[$strAliasPrefix . 'type'] : $strAliasPrefix . 'type';
@@ -587,7 +587,7 @@
 							`threshold`
 						) VALUES (
 							' . $objDatabase->SqlVariable($this->blnEnabled) . ',
-							' . $objDatabase->SqlVariable($this->blnExcept) . ',
+							' . $objDatabase->SqlVariable($this->intExcept) . ',
 							' . $objDatabase->SqlVariable($this->strCode) . ',
 							' . $objDatabase->SqlVariable($this->intType) . ',
 							' . $objDatabase->SqlVariable($this->strAmount) . ',
@@ -612,7 +612,7 @@
 							`xlsws_promo_code`
 						SET
 							`enabled` = ' . $objDatabase->SqlVariable($this->blnEnabled) . ',
-							`except` = ' . $objDatabase->SqlVariable($this->blnExcept) . ',
+							`except` = ' . $objDatabase->SqlVariable($this->intExcept) . ',
 							`code` = ' . $objDatabase->SqlVariable($this->strCode) . ',
 							`type` = ' . $objDatabase->SqlVariable($this->intType) . ',
 							`amount` = ' . $objDatabase->SqlVariable($this->strAmount) . ',
@@ -700,7 +700,7 @@
 
 			// Update $this's local variables to match
 			$this->blnEnabled = $objReloaded->blnEnabled;
-			$this->blnExcept = $objReloaded->blnExcept;
+			$this->intExcept = $objReloaded->intExcept;
 			$this->strCode = $objReloaded->strCode;
 			$this->intType = $objReloaded->intType;
 			$this->strAmount = $objReloaded->strAmount;
@@ -740,9 +740,9 @@
 					return $this->blnEnabled;
 
 				case 'Except':
-					// Gets the value for blnExcept (Not Null)
-					// @return boolean
-					return $this->blnExcept;
+					// Gets the value for intExcept (Not Null)
+					// @return integer
+					return $this->intExcept;
 					
 				case 'Code':
 					// Gets the value for strCode 
@@ -832,11 +832,11 @@
 						throw $objExc;
 					}
 				case 'Except':
-					// Sets the value for blnExcept (Not Null)
+					// Sets the value for intExcept (Not Null)
 					// @param boolean $mixValue
-					// @return boolean
+					// @return integer
 					try {
-						return ($this->blnExcept = QType::Cast($mixValue, QType::Boolean));
+						return ($this->intExcept = QType::Cast($mixValue, QType::Integer));
 					} catch (QCallerException $objExc) {
 						$objExc->IncrementOffset();
 						throw $objExc;
@@ -972,7 +972,7 @@
 			$strToReturn = '<complexType name="PromoCode"><sequence>';
 			$strToReturn .= '<element name="Rowid" type="xsd:int"/>';
 			$strToReturn .= '<element name="Enabled" type="xsd:boolean"/>';
-			$strToReturn .= '<element name="Except" type="xsd:boolean"/>';
+			$strToReturn .= '<element name="Except" type="xsd:int"/>';
 			$strToReturn .= '<element name="Code" type="xsd:string"/>';
 			$strToReturn .= '<element name="Type" type="xsd:int"/>';
 			$strToReturn .= '<element name="Amount" type="xsd:string"/>';
@@ -1008,7 +1008,7 @@
 			if (property_exists($objSoapObject, 'Enabled'))
 				$objToReturn->blnEnabled = $objSoapObject->Enabled;
 			if (property_exists($objSoapObject, 'Except'))
-				$objToReturn->blnExcept = $objSoapObject->Except;
+				$objToReturn->intExcept = $objSoapObject->Except;
 			if (property_exists($objSoapObject, 'Code'))
 				$objToReturn->strCode = $objSoapObject->Code;
 			if (property_exists($objSoapObject, 'Type'))
@@ -1068,7 +1068,7 @@
 				case 'Enabled':
 					return new QQNode('enabled', 'Enabled', 'boolean', $this);
 				case 'Except':
-					return new QQNode('except', 'Except', 'boolean', $this);
+					return new QQNode('except', 'Except', 'integer', $this);
 				case 'Code':
 					return new QQNode('code', 'Code', 'string', $this);
 				case 'Type':
@@ -1110,7 +1110,7 @@
 				case 'Enabled':
 					return new QQNode('enabled', 'Enabled', 'boolean', $this);
 				case 'Except':
-					return new QQNode('except', 'Except', 'boolean', $this);
+					return new QQNode('except', 'Except', 'integer', $this);
 				case 'Code':
 					return new QQNode('code', 'Code', 'string', $this);
 				case 'Type':
