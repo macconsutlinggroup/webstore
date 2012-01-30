@@ -33,14 +33,32 @@
 							<?php if(!$_CONTROL->NewMode): ?>
 								<?php $_CONTROL->btnEdit->Render(); ?>
 							<?php endif; ?>
-								<?php $_CONTROL->btnSave->Render('CssClass=button rounded'); ?><?php $_CONTROL->btnCancel->Render('CssClass=button rounded'); ?></div> 
+								<?php $_CONTROL->btnCancel->Render('CssClass=button rounded'); ?></div> 
 						</div>
 						
 						<?php if($_CONTROL->EditMode): ?>
-<div class="smodule_config">
+<div class="module_task short">
 
-removing used here.
-								
+<table width="100%">
+<tr height="50px">
+	<td class="label left">Delete all codes that are used up (where Qty Remaining = 0)</td>
+	<td valign="top"><?php $_CONTROL->btnGo1->Render('Text=Delete Used'); ?></td>
+</tr>
+<tr height="50px">
+	<td class="label left">Delete all codes that are Expired (where Valid Until date has passed)</td>
+	<td valign="top"><?php $_CONTROL->btnGo2->Render('Text=Delete Expired'); ?></td>
+</tr>
+<tr height="50px">
+	<td class="label left">Delete all codes that are Single Use (whether valid or not)</td>
+	<td valign="top"><?php $_CONTROL->btnGo3->Render('Text=Delete Single Use'); ?></td>
+</tr>
+<tr height="50px">
+	<td class="label left">Delete all codes (completely erase all defined Promo Codes)</td>
+	<td valign="top"><?php $_CONTROL->btnGo4->Render('Text=Delete Everything'); ?></td>
+</tr>
+
+
+</table>								
 </div>
 <?php endif; ?>
 </li>

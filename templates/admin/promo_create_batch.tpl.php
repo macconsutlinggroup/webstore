@@ -33,13 +33,22 @@
 							<?php if(!$_CONTROL->NewMode): ?>
 								<?php $_CONTROL->btnEdit->Render('CssClass=button rounded'); ?>
 							<?php endif; ?>
-								<?php $_CONTROL->btnSave->Render('CssClass=button rounded'); ?><?php $_CONTROL->btnCancel->Render('CssClass=button rounded'); ?></div> 
+								<?php $_CONTROL->btnCancel->Render('CssClass=button rounded'); ?></div> 
 						</div>
 						
 						<?php if($_CONTROL->EditMode): ?>
-<div class="smodule_config">
+<div class="module_task short">
 
-Creating a batch here.
+This feature is for creating one-time use promo codes in bulk for loyalty programs. Paste in your list of codes into the entry blank below. Select an existing promo code to use as a template. The following fields will be copied from this code: Amount, Percent or Money, optional Start and Stop date, Product restrictions and Good Above. Codes can be used once.
+
+<table>
+<td class="label left">Enter code(s):<br>
+<?php $_CONTROL->txtPageText->RenderWithError(); ?></td>
+<td class="label left">Copy settings from code:<br>
+<?php $_CONTROL->ctlPromoCodeCopy->RenderWithError(); ?></td>
+<td class="label left">&nbsp;<br>
+<?php $_CONTROL->btnGo1->Render('Text=Create Codes'); ?></td>
+</table>
 
 								
 </div>
